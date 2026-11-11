@@ -6,27 +6,54 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='17' cy='8' r='5' fill='%230F6E5C'/%3E%3Cpath d='M17 13 Q10 19 15 28' stroke='%230F6E5C' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
 <meta name="author" content="Arpit Singh">
 <title>ThinkPulse: posture monitoring through your webcam</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="description" content="ThinkPulse reads how you sit through your webcam, entirely in your browser. No video leaves your device. A prototype by Arpit Singh.">
+<meta name="robots" content="index,follow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="theme-color" content="#FAF9F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15171A" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://arpitsingh15072009.github.io/thinkpulse/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ThinkPulse">
+<meta property="og:title" content="ThinkPulse: posture monitoring through your webcam">
+<meta property="og:description" content="Your webcam already sees how you sit. ThinkPulse scores your posture in your browser and nudges you when it slips. No video leaves your device.">
+<meta property="og:url" content="https://arpitsingh15072009.github.io/thinkpulse/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ThinkPulse: posture monitoring through your webcam">
+<meta name="twitter:description" content="Your webcam already sees how you sit. Everything runs in your browser.">
 <style>
   :root{
     --paper:#FAF9F6; --ink:#15171A; --line:#DAD8CF; --muted:#6B6A62;
     --signal:#0F6E5C; --signal-dim:#E4EFEC; --alert:#B23B22; --alert-dim:#F5E4DE;
   }
+  /* Dark theme: toggled by the peace-sign gesture (see script), or by the
+     person's OS preference on first visit. Same tokens, different values,
+     so every rule above just works without a second set of overrides. */
+  html[data-theme="dark"]{
+    --paper:#15171A; --ink:#F3F2EE; --line:#34363A; --muted:#9A998F;
+    --signal:#3FCBA6; --signal-dim:#17322B; --alert:#E8846A; --alert-dim:#3A2019;
+  }
+  /* Accessibility modes switched by gestures (see the gesture guide page). */
+  html[data-contrast="high"]{--muted:#3A3A36;--line:#8A887E;}
+  html[data-theme="dark"][data-contrast="high"]{--muted:#D5D4CC;--line:#6B6D72;}
+  html[data-motion="reduced"] *{transition:none !important;animation:none !important;scroll-behavior:auto !important;}
+  html[data-cursor="large"] .gesture-cursor{width:46px;height:46px;}
+  html[data-cursor="large"] .gesture-cursor.pinching{width:60px;height:60px;}
+  html{background:var(--paper);transition:background .25s ease;}
+  body{transition:background .25s ease,color .25s ease;}
   *{box-sizing:border-box;}
   :focus-visible{outline:2px solid var(--signal);outline-offset:3px;}
   button, a{cursor:pointer;}
   html{scroll-behavior:smooth;}
-  body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;line-height:1.5;}
-  .mono{font-family:'IBM Plex Mono',monospace;}
+  body{padding-bottom:var(--cookie-h,0px);margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;line-height:1.5;}
+  .mono{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
   a{color:inherit;}
   .wrap{max-width:1040px;margin:0 auto;padding:0 28px;}
   header{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--line);z-index:10;}
-  .nav{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;max-width:1040px;margin:0 auto;}
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:8px 28px;max-width:1040px;margin:0 auto;}
   .brand{font-weight:700;font-size:18px;letter-spacing:-0.01em;}
-  .navlinks{display:flex;gap:28px;font-size:14px;}
-  .navlinks a{text-decoration:none;color:var(--muted);}
+  .navlinks{display:flex;gap:22px;font-size:14px;flex-wrap:wrap;row-gap:6px;}
+  .navlinks a{text-decoration:none;color:var(--muted);display:inline-block;padding:10px 0;}
   .navlinks a:hover{color:var(--ink);}
   section{padding:88px 0;border-bottom:1px solid var(--line);}
   section:last-of-type{border-bottom:none;}
@@ -42,7 +69,7 @@
   .kicker{font-size:13px;color:var(--signal);font-weight:600;margin:0 0 10px;}
   h2{font-size:28px;letter-spacing:-0.01em;margin:0 0 40px;max-width:26ch;}
   .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:36px;}
-  .step .n{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted);margin-bottom:10px;}
+  .step .n{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--muted);margin-bottom:10px;}
   .step h3{font-size:17px;margin:0 0 8px;}
   .step p{font-size:15px;color:var(--muted);margin:0;}
   .demo-shell{border:1px solid var(--line);}
@@ -53,41 +80,153 @@
      color:#8B8C88;font-size:14px;text-align:center;padding:24px;}
   .readout{padding:28px;display:flex;flex-direction:column;gap:22px;border-left:1px solid var(--line);}
   .metric label{display:block;font-size:12px;color:var(--muted);text-transform:none;margin-bottom:6px;}
-  .metric .val{font-family:'IBM Plex Mono',monospace;font-size:30px;}
+  .metric .val{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:30px;}
   .angle-row{display:flex;gap:20px;}
   .metric.small .val{font-size:19px;}
   .status-line{padding:10px 14px;font-size:14px;border:1px solid var(--line);background:var(--signal-dim);}
   .status-line.bad{background:var(--alert-dim);border-color:var(--alert);color:var(--alert);}
   .demo-controls{display:flex;gap:12px;padding:20px 28px;border-top:1px solid var(--line);align-items:center;flex-wrap:wrap;}
   .demo-controls .field{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);margin-left:auto;}
-  .demo-controls input[type=number]{width:56px;font-family:inherit;border:1px solid var(--line);padding:6px 8px;}
+  .demo-controls input[type=number]{width:64px;font-family:inherit;border:1px solid var(--line);padding:10px 8px;}
   .privacy-note{font-size:13px;color:var(--muted);padding:16px 28px;border-top:1px solid var(--line);}
   footer{padding:40px 0;}
   .foot-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted);}
-  .foot-links{display:flex;gap:20px;}
-  .foot-links a{text-decoration:none;}
+  .foot-links{display:flex;flex-wrap:wrap;gap:0 20px;}
+  .foot-links a, .linklike{text-decoration:none;display:inline-block;padding:10px 0;}
+  .linklike{background:none;border:0;font:inherit;color:inherit;cursor:pointer;}
+  .linklike:hover{text-decoration:underline;}
   .legal h2{font-size:22px;}
   .legal p, .legal li{color:var(--muted);font-size:15px;max-width:66ch;}
   .legal h3{font-size:16px;margin:28px 0 8px;}
   .legal ul{padding-left:20px;margin:0 0 16px;}
   .legal ul li{margin-bottom:6px;}
-  .cookie-bar{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:var(--paper);
+  .cookie-bar{position:fixed;left:0;right:0;bottom:0;background:#15171A;color:#FAF9F6;
     padding:16px 20px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;z-index:50;}
+  .cookie-bar a{color:#fff;}
   .cookie-bar[hidden]{display:none;}
   .cookie-bar p{margin:0;font-size:13px;max-width:60ch;color:#D9D8D3;}
   .cookie-bar .actions{display:flex;gap:10px;margin-left:auto;}
-  .cookie-bar button{font-family:inherit;font-size:13px;font-weight:600;padding:9px 16px;border:1px solid var(--paper);}
-  .cookie-bar .accept{background:var(--paper);color:var(--ink);}
-  .cookie-bar .reject{background:transparent;color:var(--paper);}
+  .cookie-bar button{font-family:inherit;font-size:14px;font-weight:600;padding:12px 18px;border:1px solid #FAF9F6;}
+  .cookie-bar .accept{background:#FAF9F6;color:#15171A;}
+  .cookie-bar .reject{background:transparent;color:#FAF9F6;}
+  .skip-link{position:absolute;left:-9999px;top:8px;background:#15171A;color:#FAF9F6;padding:12px 16px;z-index:100;text-decoration:none;}
+  .skip-link:focus{left:8px;}
+  #pairPanel[hidden]{display:none !important;}
+  .legal .updated{font-size:13px;color:var(--muted);margin:-28px 0 20px;}
+  .noscript-note{margin:0;padding:14px 28px;background:#F5E4DE;color:#7A2616;font-size:14px;}
+  @media (max-width:600px){ header{position:static;} .navlinks{gap:0 18px;flex-wrap:wrap;} .nav{flex-wrap:wrap;} }
   .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
   .phone-view{display:none;min-height:100vh;align-items:center;justify-content:center;padding:24px;}
   html.phone-mode .site{display:none;}
   html.phone-mode .phone-view{display:flex;}
   .phone-card{max-width:400px;text-align:center;}
-  .phone-card h2{font-size:26px;margin:8px 0 16px;}
+  .phone-card h1, .phone-card h2{font-size:26px;margin:8px 0 16px;max-width:none;}
   .phone-card p{color:var(--muted);}
   .phone-alarm{margin-top:28px;padding:24px;background:var(--alert-dim);border:2px solid var(--alert);}
   .phone-alarm p{color:var(--alert);font-size:22px;font-weight:700;margin:0 0 16px;}
+
+  /* Live presence avatar, in the header: a pseudo-3D figure (a flat SVG
+     tilted in real CSS 3D space, not a rendered mesh) that mirrors live
+     posture, head turn, and raised-hand gestures as they happen. */
+  .presence{display:flex;align-items:center;gap:8px;}
+  .presence-stage{perspective:280px;width:30px;height:38px;}
+  .presence-3d{width:100%;height:100%;transform-style:preserve-3d;transition:transform .15s linear;}
+  .presence-3d svg{display:block;}
+  .presence .pfigure{transform-origin:50px 70px;transition:transform .6s ease;}
+  .presence.slouched .pfigure{transform:rotate(14deg) translate(-4px,3px);}
+  .presence .phead{transition:fill .4s ease;}
+  .presence .pspine{transition:stroke .4s ease;}
+  .presence .parm{stroke:var(--line);stroke-width:5;stroke-linecap:round;transition:all .3s ease;transform-origin:50px 44px;}
+  .presence.upright .phead{fill:var(--signal);} .presence.upright .pspine{stroke:var(--signal);}
+  .presence.slouched .phead{fill:var(--alert);} .presence.slouched .pspine{stroke:var(--alert);}
+  .presence.away .phead{fill:var(--muted);} .presence.away .pspine{stroke:var(--muted);}
+  .presence.off .phead{fill:var(--line);} .presence.off .pspine{stroke:var(--line);}
+  .presence.armR .parm-r{stroke:var(--signal);transform:rotate(-48deg);}
+  .presence.armL .parm-l{stroke:var(--signal);transform:rotate(48deg);}
+  .presence .pz{opacity:0;font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;fill:var(--muted);transition:opacity .4s ease;}
+  .presence.away .pz{opacity:1;}
+  .presence-label{font-size:12px;color:var(--muted);}
+
+  /* Hand-signal feedback */
+  .gesture-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);
+    background:var(--ink);color:var(--paper);font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;
+    padding:10px 18px;opacity:0;pointer-events:none;transition:all .25s ease;z-index:60;}
+  .gesture-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .gesture-list{font-size:13px;color:var(--muted);padding:16px 28px;border-top:1px solid var(--line);}
+  .gesture-list strong{color:var(--ink);}
+  .gesture-cursor{position:fixed;left:0;top:0;width:28px;height:28px;border:2px solid var(--signal);border-radius:50%;
+    background:var(--signal-dim);pointer-events:none;z-index:70;
+    transform:translate3d(-100px,-100px,0);display:none;will-change:transform;
+    transition:width .1s ease,height .1s ease,border-color .1s ease;}
+  .gesture-cursor.visible{display:block;}
+  .gesture-cursor::before{content:'';position:absolute;inset:-7px;border-radius:50%;pointer-events:none;
+    background:conic-gradient(var(--signal) calc(var(--dwell,0) * 1%), transparent 0);
+    -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+    mask:radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));}
+  .gesture-rail{position:fixed;right:0;top:0;bottom:0;width:10vw;min-width:56px;display:none;flex-direction:column;
+    justify-content:space-between;align-items:center;padding:92px 0 28px;pointer-events:none;z-index:65;
+    font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--muted);
+    border-left:1px dashed var(--line);background:linear-gradient(to left, var(--signal-dim), transparent);}
+  .gesture-rail.visible{display:flex;}
+  /* Live gesture read-out over the camera feed */
+  .gesture-hud{position:absolute;left:10px;right:10px;bottom:10px;padding:8px 12px 10px;background:rgba(21,23,26,.82);
+    color:#F3F2EE;font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;display:flex;gap:10px;justify-content:space-between;
+    flex-wrap:wrap;overflow:hidden;z-index:2;}
+  .gesture-hud[hidden]{display:none;}
+  .gesture-hud .hud-do{color:#9FC9BC;}
+  .gesture-hud i{position:absolute;left:0;bottom:0;height:3px;width:0;background:#3FCBA6;transition:width .12s linear;}
+  .diag{margin:0;font-size:11px;line-height:1.5;color:var(--muted);min-height:3em;}
+  .tog{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);}
+  /* Stretch break */
+  .stretch-panel{border-top:1px solid var(--line);padding:22px 28px;}
+  .stretch-panel[hidden]{display:none;}
+  .stretch-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px;}
+  .stretch-head strong{font-size:18px;}
+  .stretch-panel p{margin:0 0 14px;color:var(--muted);font-size:14px;max-width:62ch;}
+  .stretch-bar{height:6px;background:var(--line);margin-bottom:16px;}
+  .stretch-bar i{display:block;height:100%;width:0;background:var(--signal);transition:width .25s ease;}
+  .stretch-actions{display:flex;gap:12px;flex-wrap:wrap;}
+  .stretch-actions .cta{padding:10px 16px;font-size:14px;}
+  .gesture-cursor.pinching{width:40px;height:40px;border-color:var(--alert);background:var(--alert-dim);}
+  .gesture-cursor .g-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:6px;
+    font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.02em;color:var(--ink);
+    background:var(--paper);border:1px solid var(--line);padding:2px 6px;white-space:nowrap;opacity:0;
+    transition:opacity .15s ease;}
+  .gesture-cursor .g-label.show{opacity:1;}
+  .g-ripple{position:fixed;width:16px;height:16px;border:2px solid var(--signal);border-radius:50%;
+    pointer-events:none;z-index:69;transform:translate(-50%,-50%);animation:gripple .45s ease-out forwards;}
+  @keyframes gripple{
+    from{opacity:.9;transform:translate(-50%,-50%) scale(1);}
+    to{opacity:0;transform:translate(-50%,-50%) scale(3.2);}
+  }
+
+  /* Gallery carousel */
+  .carousel-hint{font-size:13px;color:var(--muted);margin:0 0 24px;max-width:60ch;}
+  .carousel{border:1px solid var(--line);overflow:hidden;}
+  .carousel-track{display:flex;transition:transform .45s ease;}
+  .carousel-slide{flex:0 0 100%;padding:48px 44px;min-height:180px;}
+  .carousel-slide h3{font-size:20px;margin:0 0 10px;}
+  .carousel-slide p{color:var(--muted);font-size:15px;max-width:52ch;margin:0;}
+  .carousel-controls{display:flex;align-items:center;gap:16px;padding:16px 28px;border-top:1px solid var(--line);}
+  .carousel-dots{display:flex;gap:8px;margin:0 auto;}
+  .carousel-dots button{width:8px;height:8px;padding:0;border-radius:50%;border:1px solid var(--muted);background:transparent;}
+  .carousel-dots button.active{background:var(--signal);border-color:var(--signal);}
+  .carousel{position:relative;}
+
+  /* Spine Timeline heatmap */
+  .timeline-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:20px;}
+  .timeline-legend{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+  .timeline-legend .lg-cell{width:12px;height:12px;}
+  .heatmap{overflow-x:auto;padding-bottom:4px;}
+  .heatmap-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,12px);gap:3px;}
+  .hm-cell{width:12px;height:12px;background:#F0EFEA;position:relative;}
+  .hm-cell:focus-visible{outline:2px solid var(--signal);outline-offset:1px;}
+  .hm-cell[data-empty="1"]{background:transparent;}
+  .hm-tooltip{position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);
+    font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;padding:5px 8px;white-space:nowrap;pointer-events:none;
+    opacity:0;transition:opacity .15s ease;z-index:5;}
+  .hm-cell:hover .hm-tooltip, .hm-cell:focus-visible .hm-tooltip{opacity:1;}
+  .timeline-controls{margin-top:20px;}
   @media (max-width:820px){
     .hero{grid-template-columns:1fr;}
     .steps{grid-template-columns:1fr;}
@@ -95,23 +234,90 @@
     .readout{border-left:none;border-top:1px solid var(--line);}
     h1{font-size:34px;}
   }
+
+  /* Gesture guide: a separate in-site page, shown only at #gestures */
+  .guide-view{display:none;}
+  html.guide-mode .site{display:none;}
+  html.guide-mode .guide-view{display:block;}
+  .guide-view .g-top{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--line);z-index:10;}
+  .guide-view .g-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 28px;max-width:1040px;margin:0 auto;flex-wrap:wrap;}
+  .guide-view .g-back{font-size:14px;color:var(--muted);text-decoration:none;}
+  .guide-view .g-back:hover{color:var(--ink);}
+  .guide-view main{padding:64px 0 40px;}
+  .guide-view h1{font-size:38px;line-height:1.14;letter-spacing:-0.015em;margin:0 0 16px;max-width:20ch;}
+  .guide-view .lede{font-size:17px;color:var(--muted);max-width:62ch;margin:0 0 28px;}
+  .guide-view .tips{border:1px solid var(--line);padding:20px 24px;margin:0 0 36px;}
+  .guide-view .tips h2{font-size:16px;margin:0 0 10px;max-width:none;}
+  .guide-view .tips ul{margin:0;padding-left:20px;color:var(--muted);font-size:14px;}
+  .guide-view .tips li{margin-bottom:6px;max-width:80ch;}
+  .guide-view .tools{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:0 0 12px;}
+  .guide-view .tools label{font-size:14px;color:var(--muted);}
+  .guide-view .tools input{font-family:inherit;font-size:15px;padding:9px 12px;border:1px solid var(--ink);background:var(--paper);color:var(--ink);min-width:min(320px,100%);}
+  .guide-view .g-status{font-size:13px;color:var(--muted);}
+  .guide-view .cat{margin-top:40px;}
+  .guide-view .cat h2{font-size:20px;margin:0 0 14px;max-width:none;display:flex;align-items:baseline;gap:10px;}
+  .guide-view .count{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;color:var(--muted);font-weight:400;}
+  .guide-view .list{list-style:none;margin:0;padding:0;border-top:1px solid var(--line);}
+  .guide-view .row{display:grid;grid-template-columns:28px 112px 1fr 1fr;gap:18px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line);}
+  .guide-view .row[hidden]{display:none;}
+  .guide-view .cat[hidden]{display:none;}
+  .guide-view .num{font-size:12px;color:var(--muted);}
+  .guide-view .glyph{color:var(--ink);display:block;}
+  .guide-view .main h3{font-size:16px;margin:0 0 4px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;}
+  .guide-view .tag{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;font-weight:500;color:var(--signal);border:1px solid var(--signal);padding:1px 6px;}
+  .guide-view .motion{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;font-weight:400;color:var(--muted);}
+  .guide-view .how{margin:0;font-size:14px;color:var(--muted);max-width:52ch;}
+  .guide-view .does{margin:0;font-size:14px;}
+  .guide-view .lbl{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-right:6px;}
+  .guide-view .empty{padding:24px 0;color:var(--muted);font-size:14px;}
+  .guide-view .g-foot{border-top:1px solid var(--line);padding:32px 0 48px;font-size:13px;color:var(--muted);}
+  @media (max-width:820px){
+    .guide-view h1{font-size:30px;}
+    .guide-view .row{grid-template-columns:28px 1fr;gap:10px 14px;}
+    .guide-view .row .glyph{grid-column:2;}
+    .guide-view .row .main{grid-column:1 / -1;}
+    .guide-view .row .does{grid-column:1 / -1;}
+  }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
+<noscript><p class="noscript-note">ThinkPulse needs JavaScript to run its camera demo. The rest of this page, including the privacy, cookie and terms text, is readable without it.</p></noscript>
 
 <div class="site">
 <header>
   <div class="nav">
-    <div class="brand">ThinkPulse</div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div class="brand">ThinkPulse</div>
+      <div class="presence off" id="presence" role="status" aria-live="polite">
+        <div class="presence-stage">
+          <div class="presence-3d" id="presence3d">
+            <svg width="30" height="38" viewBox="0 0 100 100" aria-hidden="true">
+              <g class="pfigure">
+                <line class="parm parm-l" x1="50" y1="44" x2="30" y2="62"/>
+                <line class="parm parm-r" x1="50" y1="44" x2="70" y2="62"/>
+                <circle class="phead" cx="50" cy="26" r="13"/>
+                <path class="pspine" d="M50 39 Q46 58 50 78" fill="none" stroke-width="7"/>
+              </g>
+              <text class="pz" x="66" y="20">z z</text>
+            </svg>
+          </div>
+        </div>
+        <span class="presence-label" id="presenceLabel">Camera off</span>
+      </div>
+    </div>
     <nav class="navlinks">
       <a href="#how">How it works</a>
       <a href="#demo">Try it</a>
+      <a href="#gallery">Explore</a>
       <a href="#connect">Connect phone</a>
+      <a href="#timeline">History</a>
       <a href="#privacy">Privacy</a>
     </nav>
   </div>
 </header>
 
+<main id="main">
 <section class="hero-section">
   <div class="wrap hero">
     <div>
@@ -170,7 +376,9 @@
         <div class="video-pane">
           <video id="video" autoplay playsinline muted aria-label="Live camera feed used to read your posture"></video>
           <canvas id="overlay" aria-hidden="true"></canvas>
+          <canvas id="handOverlay" aria-hidden="true"></canvas>
           <div class="placeholder" id="placeholder">Camera is off. Start it below to see your live posture score.</div>
+          <div class="gesture-hud" id="gestureHud" hidden><span id="hudName"></span><span class="hud-do" id="hudDo"></span><i id="hudBar"></i></div>
         </div>
         <div class="readout">
           <div class="metric">
@@ -192,19 +400,65 @@
             <div class="val mono" id="timeVal">00:00</div>
           </div>
           <div class="status-line" id="statusLine">Not started</div>
+          <p class="diag mono" id="diagLine">Model confidence per body point shows here once the camera runs.</p>
         </div>
       </div>
       <div class="demo-controls">
         <button class="cta" id="startBtn">Enable camera</button>
         <button class="cta secondary" id="stopBtn" disabled>Stop camera</button>
         <button class="cta secondary" id="calibrateBtn" disabled>Set my upright posture</button>
+        <button class="cta secondary" id="stretchBtn" disabled>Start a stretch break</button>
+        <label class="tog" for="gesturesToggle"><input type="checkbox" id="gesturesToggle" checked> Hand gestures</label>
         <div class="field">
           <label for="limitInput">Remind me after</label>
           <input type="number" id="limitInput" min="1" value="20" aria-describedby="limitUnit">
           <span id="limitUnit">min</span>
         </div>
       </div>
+      <div class="stretch-panel" id="stretchPanel" hidden>
+        <div class="stretch-head"><strong id="stretchTitle"></strong><span class="mono" id="stretchCount"></span></div>
+        <p id="stretchHint"></p>
+        <div class="stretch-bar"><i id="stretchFill"></i></div>
+        <div class="stretch-actions">
+          <button class="cta secondary" id="stretchSkip">Skip this one</button>
+          <button class="cta secondary" id="stretchStop">End break</button>
+        </div>
+      </div>
+      <p class="gesture-list"><strong>Gesture interface:</strong> point with one finger to move the cursor. Hold it still on a button or link for about a second (a ring fills) to click it, or pinch thumb and finger together to click right away. To scroll, point at the strip along the right edge of the screen: the upper part scrolls up, the lower part scrolls down, faster toward the ends. Swipe an open palm sideways to move through the cards, or up and down for a quick page scroll. Hold a thumbs-up to calibrate, a peace sign to switch between light and dark, show both open palms to open your phone QR code, or hold a fist to pause gesture controls. Hold an open palm to resume. The camera view draws your hand and shows which gesture it is reading, with a bar that fills as you hold a pose. There are 50 more poses and motions on the <a href="#gestures">full gesture guide</a>.</p>
       <p class="privacy-note">Video is processed frame by frame in your browser. Nothing is recorded, saved, or sent anywhere. See the <a href="#privacy">privacy policy</a> for what that means in detail.</p>
+    </div>
+  </div>
+</section>
+
+<section id="gallery">
+  <div class="wrap">
+    <p class="kicker">Explore</p>
+    <h2>Lean left or right to look around.</h2>
+    <p class="carousel-hint">A few things worth knowing about how ThinkPulse works. Use the arrows or dots below, or swipe an open palm while the camera is on. See the gesture guide in the live demo above.</p>
+    <div class="carousel">
+      <div class="carousel-track" id="carouselTrack">
+        <div class="carousel-slide">
+          <h3>Built for long sessions</h3>
+          <p>Study blocks, work sprints, long calls, ThinkPulse is meant to run quietly in a tab for hours, not for a one-off check.</p>
+        </div>
+        <div class="carousel-slide">
+          <h3>No hardware, no account</h3>
+          <p>No belt, no sensor kit, no sign-up. Open the page, allow the camera, and the scoring starts on whatever device you're already using.</p>
+        </div>
+        <div class="carousel-slide">
+          <h3>Calibrated to you</h3>
+          <p>Everyone's neutral posture looks a little different. Setting your own upright baseline is what makes the score mean something for your body, not an average one.</p>
+        </div>
+        <div class="carousel-slide">
+          <h3>Private by default</h3>
+          <p>Every frame is read and scored in your browser and thrown away immediately after. Nothing about how you sit is ever sent anywhere.</p>
+        </div>
+      </div>
+      <div class="carousel-controls">
+        <button class="cta secondary" id="prevSlide" aria-label="Previous slide">&larr;</button>
+        <div class="carousel-dots" id="carouselDots" role="tablist" aria-label="Slide selector"></div>
+        <button class="cta secondary" id="nextSlide" aria-label="Next slide">&rarr;</button>
+      </div>
     </div>
   </div>
 </section>
@@ -231,84 +485,144 @@
   </div>
 </section>
 
+<section id="timeline">
+  <div class="wrap">
+    <div class="timeline-head">
+      <div>
+        <p class="kicker">Your history</p>
+        <h2 style="margin-bottom:8px;">The Spine Timeline.</h2>
+        <p style="font-size:14px;color:var(--muted);margin:0;max-width:60ch;">One cell per day you've used the camera, colored by that day's average posture score. Built up only while the camera runs, and stored only in this browser on this device.</p>
+      </div>
+      <div class="timeline-legend">
+        <span>Needs work</span>
+        <span class="lg-cell" style="background:#B23B22;"></span>
+        <span class="lg-cell" style="background:#E3A392;"></span>
+        <span class="lg-cell" style="background:#DAD8CF;"></span>
+        <span class="lg-cell" style="background:#9FC9BC;"></span>
+        <span class="lg-cell" style="background:#0F6E5C;"></span>
+        <span>On track</span>
+      </div>
+    </div>
+    <div class="heatmap">
+      <div class="heatmap-grid" id="heatmapGrid"></div>
+    </div>
+    <div class="timeline-controls">
+      <button class="cta secondary" id="clearHistoryBtn">Clear my history</button>
+    </div>
+  </div>
+</section>
+
 <section id="privacy" class="legal">
   <div class="wrap">
     <h2>Privacy</h2>
-    <p>ThinkPulse's camera demo runs entirely client-side. Your camera stream is read directly by your browser and analyzed on your own device using a pose-detection model. This page explains exactly what that involves.</p>
+    <p class="updated">Last updated 11 November 2026</p>
+    <p>ThinkPulse is a prototype made by Arpit Singh. Its camera demo runs entirely in your browser: your camera stream is read by your browser and analyzed on your own device. This page says exactly what that involves, what is stored, and which outside services are contacted and when.</p>
 
-    <h3>What we collect</h3>
+    <h3>What ThinkPulse receives</h3>
     <ul>
-      <li>Nothing is sent to a ThinkPulse server. This page has no backend and no database.</li>
-      <li>Your camera video is read by your browser, turned into posture numbers on your device, and then discarded frame by frame. No image or video is saved, screenshotted, or uploaded.</li>
-      <li>The sitting-limit minutes you set, and your upright-posture calibration, live only in this browser tab's memory. Close the tab and they're gone.</li>
-      <li>One small preference, whether you accepted or dismissed the cookie notice, is stored in your browser so we don't ask again. That's the only thing that persists.</li>
+      <li>Nothing. This page has no backend, no database, no account system and no analytics. ThinkPulse never receives your video, your posture scores or anything else about you.</li>
+      <li>Your camera video is turned into body-point positions on your device and discarded frame by frame. Nothing is recorded, screenshotted or uploaded. It is not used to recognize or identify anyone, and no face recognition is involved.</li>
     </ul>
 
-    <h3>Third-party embeds</h3>
-    <p>This page loads a small number of resources from outside servers so it can render text and run the pose model:</p>
+    <h3>What is stored in your browser</h3>
     <ul>
-      <li><strong>Google Fonts</strong> (fonts.googleapis.com, fonts.gstatic.com) for the typefaces.</li>
-      <li><strong>jsDelivr</strong> (cdn.jsdelivr.net) for the TensorFlow.js library and pose-detection model code.</li>
-      <li>The pose model itself downloads its trained weights from Google's model hosting the first time you start the camera.</li>
+      <li>Always, in memory only and gone when you close the tab: your sitting-reminder minutes, your upright-posture calibration, and your posture history for the current visit.</li>
+      <li>One cookie, <strong>tp_consent</strong>, which remembers whether you pressed Accept or Decline. It lasts 12 months and contains only that one word. It is strictly necessary so that you are not asked on every visit.</li>
+      <li>Only if you press <strong>Accept</strong>, in this browser's local storage: <strong>tp_theme</strong> (your light or dark choice) and <strong>tp_daily</strong> (one average posture score per day, for the Spine Timeline). They never leave your browser. If you press <strong>Decline</strong>, none of this is saved and anything saved earlier is deleted. You can also erase the history with the Clear my history button on that section.</li>
     </ul>
-    <p>None of these are asked to identify you and none of them receive your camera feed. Like any web request, though, they can see your IP address and browser details as a normal part of serving the file, governed by their own privacy policies rather than ours.</p>
 
-    <h3>Children's data</h3>
-    <p>ThinkPulse is built with students in mind, but this page does not knowingly collect personal information from anyone, and has no account system that would ask a child's age or identity.</p>
+    <h3>Outside services, and when they are contacted</h3>
+    <p>When you only read this page, no outside service is contacted. The services below are contacted only after a specific action by you. Like any web request, they can see your IP address and browser details, under their own privacy policies.</p>
+    <ul>
+      <li><strong>After you press Accept:</strong> Google Fonts (fonts.googleapis.com and fonts.gstatic.com) delivers the IBM Plex typeface. If you decline, the page uses your device's own fonts and Google is not contacted.</li>
+      <li><strong>When you press Enable camera:</strong> jsDelivr (cdn.jsdelivr.net) delivers the TensorFlow.js, pose-detection and MediaPipe Hands code, and the hand model files. The pose model's trained weights are downloaded from Google's model hosting. These downloads bring files to your browser. None of them receive your camera feed.</li>
+      <li><strong>When you press Generate pairing code:</strong> cdnjs (run by Cloudflare) delivers the QR code library and jsDelivr delivers the messaging library. Your browser then connects to a public test relay run by HiveMQ (broker.hivemq.com) to carry a short alert message to your phone under a random session ID. No video and no scores travel through it. It is a public relay and not a private channel: anyone who learned the session ID could read or send those messages, which is why the ID is long and random and is used for one session only. The phone that opens your link connects to the same relay.</li>
+      <li>The Instagram link in the footer leaves this site. Instagram's own policies apply there.</li>
+    </ul>
 
-    <h3>Your rights</h3>
-    <p>Because nothing is stored on our side, there is no ThinkPulse-held record of you to access, correct, or delete. If that changes as the product grows, this page will say so before it happens, not after.</p>
+    <h3>Children</h3>
+    <p>ThinkPulse is built with students in mind. It collects no personal information, has no accounts and shows no ads. If you are under 18, please ask a parent or guardian before you turn the camera on.</p>
 
-    <p>This is a placeholder privacy notice for an early build and should be reviewed by qualified counsel before the product is launched publicly.</p>
+    <h3>Your rights and contact</h3>
+    <p>Because ThinkPulse holds no personal data about you, there is nothing for it to access, correct or delete on its side. Everything it saves is in your own browser, where you can clear it yourself: choose Decline under Cookie settings in the footer, press Clear my history, or clear this site's data in your browser settings. For any question or privacy request, message <a href="https://www.instagram.com/calmcircuits.official/" target="_blank" rel="noopener noreferrer">@calmcircuits.official</a> on Instagram. If this changes, for example if accounts, analytics or a store are added, this page will be updated before that happens.</p>
   </div>
 </section>
 
 <section id="cookies" class="legal">
   <div class="wrap">
-    <h2>Cookies</h2>
-    <p>This page sets exactly one cookie: a record of whether you accepted or dismissed the notice at the bottom of the screen, so it doesn't reappear on your next visit. It carries no identifier beyond that choice.</p>
+    <h2>Cookies and local storage</h2>
+    <p class="updated">Last updated 11 November 2026</p>
+    <p>This page sets exactly one cookie.</p>
+    <ul>
+      <li><strong>tp_consent</strong>: remembers whether you pressed Accept or Decline on the notice. It holds only the word accepted or declined, lasts 12 months, is first-party only and is never sent anywhere except back to this page. It is strictly necessary to avoid asking you on every visit.</li>
+    </ul>
+    <h3>Local storage (not a cookie)</h3>
+    <p>Only if you press Accept, this page also saves two items in your browser's local storage: <strong>tp_theme</strong> (light or dark) and <strong>tp_daily</strong> (one average posture score per day). They stay on your device and are not sent anywhere. Accept also allows the IBM Plex typeface to be loaded from Google Fonts. If you press Decline, none of these are used and anything saved earlier is deleted.</p>
     <h3>What we don't use</h3>
     <ul>
       <li>No advertising or retargeting cookies.</li>
       <li>No analytics or behavior-tracking cookies.</li>
-      <li>No cookies from the font or pose-model providers listed under Privacy; loading their files doesn't set a cookie on this page.</li>
+      <li>No cookies from the outside services listed under Privacy. Loading their files does not set a cookie on this page.</li>
     </ul>
-    <p>You can clear the consent cookie any time through your browser's site settings; the notice will simply ask again on your next visit.</p>
-    <p>This is a placeholder cookie notice for an early build and should be reviewed by qualified counsel before the product is launched publicly.</p>
+    <h3>Changing your choice</h3>
+    <p>Use <strong>Cookie settings</strong> in the footer at any time to see the notice again and switch between Accept and Decline. You can also clear this site's data in your browser settings.</p>
   </div>
 </section>
 
 <section id="terms" class="legal">
   <div class="wrap">
     <h2>Terms of use</h2>
-    <p>This build of ThinkPulse is a working prototype. It is provided as-is, without warranty, for evaluating the posture-detection concept. Posture scores are estimates from a computer-vision model and are not medical advice or a diagnosis of any physical condition.</p>
-    <p>Do not rely on ThinkPulse to manage an existing injury or medical condition. If you experience persistent pain, consult a healthcare professional.</p>
+    <p class="updated">Last updated 11 November 2026</p>
+    <p>ThinkPulse is a working prototype made by Arpit Singh. By using this page you agree to these terms. If you do not agree, please do not use it.</p>
+    <h3>Prototype, provided as is</h3>
+    <p>This build is provided as is and as available, without warranty of any kind, so that people can try the posture-detection idea. Features, wording and scoring may change or disappear without notice.</p>
+    <h3>Not medical advice</h3>
+    <p>Posture scores are estimates from a computer-vision model. ThinkPulse is not a medical device and does not diagnose, treat or prevent any condition. Do not rely on it to manage an injury or a medical condition. If you have persistent pain, speak to a healthcare professional. Stop using the stretch break or any posture suggestion if it causes you pain.</p>
     <h3>Acceptable use</h3>
-    <p>Use this demo on your own device and your own camera. Don't try to feed it someone else's video without their knowledge, and don't use it in a way that violates another person's privacy.</p>
+    <p>Use this demo on your own device and your own camera. Do not point it at other people without their knowledge, do not use it in a way that breaks the law or violates another person's privacy, and do not try to disrupt the page or the public relay it uses for phone alerts.</p>
+    <h3>Phone alerts use a public relay</h3>
+    <p>The optional phone pairing sends short messages through a public third-party test relay that ThinkPulse does not control and cannot guarantee. Alerts can be delayed, lost, or seen by someone who learns your session ID. Do not rely on them for anything safety critical.</p>
+    <h3>Third-party software</h3>
+    <p>ThinkPulse is built with open source software, each under its own licence:</p>
+    <ul>
+      <li>TensorFlow.js, the pose-detection library and the MoveNet model, by Google: Apache License 2.0.</li>
+      <li>MediaPipe Hands, by Google: Apache License 2.0.</li>
+      <li>MQTT.js: MIT License.</li>
+      <li>QRCode.js: MIT License.</li>
+      <li>IBM Plex Sans and IBM Plex Mono, by IBM: SIL Open Font License 1.1, loaded only if you press Accept.</li>
+    </ul>
+    <p>Product names and trademarks belong to their owners. Mentioning them here does not imply endorsement.</p>
+    <h3>Limitation of liability</h3>
+    <p>To the extent the law allows, ThinkPulse and its maker are not liable for any loss or damage that comes from using this prototype, including from relying on a posture score or an alert. Nothing in these terms limits any liability that cannot be limited by law, and nothing in them takes away rights you have as a consumer.</p>
     <h3>Changes</h3>
-    <p>Since this is an early build, features, wording, and scoring logic on this page may change without notice as the product develops.</p>
-    <p>This is a placeholder terms page for an early build and should be reviewed by qualified counsel before the product is launched publicly.</p>
+    <p>These terms may change as the product develops. The date at the top shows the latest version.</p>
+    <h3>Contact</h3>
+    <p>Questions about these terms: message <a href="https://www.instagram.com/calmcircuits.official/" target="_blank" rel="noopener noreferrer">@calmcircuits.official</a> on Instagram.</p>
   </div>
 </section>
 
 <section id="refunds" class="legal">
   <div class="wrap">
     <h2>Refunds</h2>
+    <p class="updated">Last updated 11 November 2026</p>
     <p>This page does not currently process any purchases. No DIY kits or prebuilt devices are sold here yet, so no charge exists to refund.</p>
-    <p>Once a store is added, the intent is a straightforward policy: a defined return window from delivery, a refund once a returned kit is received in its original condition, and clear handling for anything that arrives damaged or faulty. Custom or clearance items, if any, would be called out as non-returnable at the point of purchase, not buried in fine print afterward.</p>
-    <p>This is a placeholder refund policy, written ahead of any store existing, and should be reviewed by qualified counsel before the product is launched publicly.</p>
+    <p>If a store is added later, its refund and returns terms will be published here before the first sale, including the return window, the condition required for a refund, and how damaged or faulty items are handled.</p>
   </div>
 </section>
+
+</main>
 
 <footer>
   <div class="wrap">
     <div class="foot-row">
-      <div>ThinkPulse, prototype build. Made by <span id="creatorName">Arpit Singh</span>.</div>
+      <div>ThinkPulse, prototype build. Made by <span id="creatorName">Arpit Singh</span>. &copy; 2026.</div>
       <div class="foot-links">
         <a href="#privacy">Privacy</a>
         <a href="#cookies">Cookies</a>
         <a href="#terms">Terms</a>
         <a href="#refunds">Refunds</a>
+        <a href="#gestures">Gesture guide</a>
+        <button type="button" class="linklike" id="cookieSettings">Cookie settings</button>
       </div>
     </div>
     <div class="foot-row" style="margin-top:12px;">
@@ -323,7 +637,7 @@
   <div class="phone-card">
     <div class="brand" style="margin-bottom:20px;">ThinkPulse</div>
     <p class="kicker">Connected device</p>
-    <h2>Phone alarm receiver</h2>
+    <h1>Phone alarm receiver</h1>
     <p id="phoneStatus">Tap below to enable sound. Phones block audio until you interact once.</p>
     <button class="cta" id="phoneEnableBtn">Enable alarm sound</button>
     <div id="phoneAlarmBanner" class="phone-alarm" hidden>
@@ -334,18 +648,394 @@
   </div>
 </div>
 
+<div class="guide-view" id="guideView">
+<div class="g-top"><div class="g-nav">
+  <a class="brand" href="#demo" style="text-decoration:none;">ThinkPulse</a>
+  <a class="g-back" href="#demo">Back to the live demo</a>
+</div></div>
+<main id="guideMain">
+<div class="wrap">
+  <p class="kicker">Gesture guide</p>
+  <h1>50 hand gestures for ThinkPulse.</h1>
+  <p class="lede">These work while your camera is running, on this page too. The basics (pointing, pinching, palm swipes, thumbs up, peace sign, fist to pause) are explained in the live demo; this page covers fifty more. Everything is read on your device from your webcam, the same way your posture is.</p>
+  <div class="tips">
+    <h2>Before you start</h2>
+    <ul>
+      <li><strong>Hold still for about half a second.</strong> Poses tagged Hold only fire after the hand stays roughly steady, so a pose you pass through while moving does nothing. Swipe and Motion are movements, and Two hands covers both held poses and movements.</li>
+      <li><strong>Left and right are as you see yourself on screen.</strong> The camera view is mirrored, so sweeping toward your right hand moves right.</li>
+      <li><strong>Single-hand gestures need one hand in view.</strong> With a second hand visible, only the two-hand gestures are read, though the cursor still follows your first hand.</li>
+      <li><strong>Face the camera with good light.</strong> Finger detection is approximate. If a pose is not picked up, open the hand a little wider or move closer, and try again.</li>
+      <li><strong>A fist held still pauses everything,</strong> and a held open palm resumes it, so you can type or reach for something without triggering anything.</li>
+      <li>The finger diagrams show raised fingers as solid bars and folded fingers as outlines, thumb first, with the hand turned the way the pose is held.</li>
+    </ul>
+  </div>
+  <div class="tools">
+    <label for="gq">Filter gestures</label>
+    <input id="gq" type="search" placeholder="Try: scroll, alarm, two hands" autocomplete="off">
+    <span class="g-status" id="gStatus" role="status" aria-live="polite">Showing all 50</span>
+  </div>
+<section class="cat" aria-labelledby="c0"><h2 id="c0">Move around the page <span class="count">16</span></h2>
+<ul class="list">
+<li class="row" data-text="three fingers up raise index, middle and ring fingers, thumb and little finger folded, hand upright. jump to how it works. hold move around the page">
+  <span class="num mono">01</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Three fingers up"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Three fingers up <span class="tag">Hold</span></h3><p class="how">Raise index, middle and ring fingers, thumb and little finger folded, hand upright.</p></div>
+  <p class="does"><span class="lbl">Does</span> Jump to How it works.</p>
+</li>
+<li class="row" data-text="four fingers up raise all four fingers, thumb folded across the palm, hand upright. jump to try it, the live demo. hold move around the page">
+  <span class="num mono">02</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Four fingers up"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Four fingers up <span class="tag">Hold</span></h3><p class="how">Raise all four fingers, thumb folded across the palm, hand upright.</p></div>
+  <p class="does"><span class="lbl">Does</span> Jump to Try it, the live demo.</p>
+</li>
+<li class="row" data-text="l shape up index finger up and thumb stretched wide to the side, other fingers folded. hold a little longer, about 0.85 seconds. jump to explore, the card gallery. hold move around the page">
+  <span class="num mono">03</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for L shape up"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>L shape up <span class="tag">Hold</span></h3><p class="how">Index finger up and thumb stretched wide to the side, other fingers folded. Hold a little longer, about 0.85 seconds.</p></div>
+  <p class="does"><span class="lbl">Does</span> Jump to Explore, the card gallery.</p>
+</li>
+<li class="row" data-text="horns up index and little finger up, middle and ring folded, thumb folded. jump to connect phone. hold move around the page">
+  <span class="num mono">04</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Horns up"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Horns up <span class="tag">Hold</span></h3><p class="how">Index and little finger up, middle and ring folded, thumb folded.</p></div>
+  <p class="does"><span class="lbl">Does</span> Jump to Connect phone.</p>
+</li>
+<li class="row" data-text="shaka up thumb and little finger out, the three middle fingers folded, hand upright. jump to the spine timeline history. hold move around the page">
+  <span class="num mono">05</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Shaka up"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Shaka up <span class="tag">Hold</span></h3><p class="how">Thumb and little finger out, the three middle fingers folded, hand upright.</p></div>
+  <p class="does"><span class="lbl">Does</span> Jump to the Spine Timeline history.</p>
+</li>
+<li class="row" data-text="shaka down the same thumb and little finger shape, with the hand turned upside down, fingers pointing at the floor. jump to privacy. hold move around the page">
+  <span class="num mono">06</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Shaka down"><g transform="rotate(180 27 22)"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></g></svg>
+  <div class="main"><h3>Shaka down <span class="tag">Hold</span></h3><p class="how">The same thumb and little finger shape, with the hand turned upside down, fingers pointing at the floor.</p></div>
+  <p class="does"><span class="lbl">Does</span> Jump to Privacy.</p>
+</li>
+<li class="row" data-text="l shape down the l shape turned upside down, index pointing down. hold about 0.85 seconds. jump to cookies. hold move around the page">
+  <span class="num mono">07</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for L shape down"><g transform="rotate(180 27 22)"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></g></svg>
+  <div class="main"><h3>L shape down <span class="tag">Hold</span></h3><p class="how">The L shape turned upside down, index pointing down. Hold about 0.85 seconds.</p></div>
+  <p class="does"><span class="lbl">Does</span> Jump to Cookies.</p>
+</li>
+<li class="row" data-text="three fingers down index, middle and ring fingers pointing down, thumb and little finger folded. jump to terms of use. hold move around the page">
+  <span class="num mono">08</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Three fingers down"><g transform="rotate(180 27 22)"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></g></svg>
+  <div class="main"><h3>Three fingers down <span class="tag">Hold</span></h3><p class="how">Index, middle and ring fingers pointing down, thumb and little finger folded.</p></div>
+  <p class="does"><span class="lbl">Does</span> Jump to Terms of use.</p>
+</li>
+<li class="row" data-text="four fingers down all four fingers pointing down, thumb folded. jump to refunds. hold move around the page">
+  <span class="num mono">09</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Four fingers down"><g transform="rotate(180 27 22)"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></g></svg>
+  <div class="main"><h3>Four fingers down <span class="tag">Hold</span></h3><p class="how">All four fingers pointing down, thumb folded.</p></div>
+  <p class="does"><span class="lbl">Does</span> Jump to Refunds.</p>
+</li>
+<li class="row" data-text="little finger up only the little finger raised, everything else folded. jump to the footer. hold move around the page">
+  <span class="num mono">10</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Little finger up"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Little finger up <span class="tag">Hold</span></h3><p class="how">Only the little finger raised, everything else folded.</p></div>
+  <p class="does"><span class="lbl">Does</span> Jump to the footer.</p>
+</li>
+<li class="row" data-text="open palm held high open palm facing the camera, held in the top quarter of the camera view for about 0.9 seconds. scroll to the top of the page. hold move around the page">
+  <span class="num mono">11</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Open palm held high"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Open palm held high <span class="tag">Hold</span></h3><p class="how">Open palm facing the camera, held in the top quarter of the camera view for about 0.9 seconds.</p></div>
+  <p class="does"><span class="lbl">Does</span> Scroll to the top of the page.</p>
+</li>
+<li class="row" data-text="open palm held low open palm held in the bottom quarter of the camera view for about 0.9 seconds. scroll to the bottom of the page. hold move around the page">
+  <span class="num mono">12</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Open palm held low"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Open palm held low <span class="tag">Hold</span></h3><p class="how">Open palm held in the bottom quarter of the camera view for about 0.9 seconds.</p></div>
+  <p class="does"><span class="lbl">Does</span> Scroll to the bottom of the page.</p>
+</li>
+<li class="row" data-text="peace sign swipe up make a peace sign and sweep it upward in one smooth motion. scroll up by most of a screen. swipe move around the page">
+  <span class="num mono">13</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Peace sign swipe up"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Peace sign swipe up <span class="tag">Swipe</span> <span class="motion">moves up</span></h3><p class="how">Make a peace sign and sweep it upward in one smooth motion.</p></div>
+  <p class="does"><span class="lbl">Does</span> Scroll up by most of a screen.</p>
+</li>
+<li class="row" data-text="peace sign swipe down make a peace sign and sweep it downward. scroll down by most of a screen. swipe move around the page">
+  <span class="num mono">14</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Peace sign swipe down"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Peace sign swipe down <span class="tag">Swipe</span> <span class="motion">moves down</span></h3><p class="how">Make a peace sign and sweep it downward.</p></div>
+  <p class="does"><span class="lbl">Does</span> Scroll down by most of a screen.</p>
+</li>
+<li class="row" data-text="fist swipe left closed fist, sweep it to your left (the left of the screen). go to the previous section. swipe move around the page">
+  <span class="num mono">15</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Fist swipe left"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Fist swipe left <span class="tag">Swipe</span> <span class="motion">moves left</span></h3><p class="how">Closed fist, sweep it to your left (the left of the screen).</p></div>
+  <p class="does"><span class="lbl">Does</span> Go to the previous section.</p>
+</li>
+<li class="row" data-text="fist swipe right closed fist, sweep it to your right. go to the next section. swipe move around the page">
+  <span class="num mono">16</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Fist swipe right"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Fist swipe right <span class="tag">Swipe</span> <span class="motion">moves right</span></h3><p class="how">Closed fist, sweep it to your right.</p></div>
+  <p class="does"><span class="lbl">Does</span> Go to the next section.</p>
+</li>
+</ul></section>
+<section class="cat" aria-labelledby="c1"><h2 id="c1">Gallery cards <span class="count">5</span></h2>
+<ul class="list">
+<li class="row" data-text="thumb pointing right fist with the thumb sticking out sideways to the right of the screen. next card. hold gallery cards">
+  <span class="num mono">17</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Thumb pointing right"><g transform="rotate(90 27 22)"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></g></svg>
+  <div class="main"><h3>Thumb pointing right <span class="tag">Hold</span></h3><p class="how">Fist with the thumb sticking out sideways to the right of the screen.</p></div>
+  <p class="does"><span class="lbl">Does</span> Next card.</p>
+</li>
+<li class="row" data-text="thumb pointing left fist with the thumb sticking out sideways to the left. previous card. hold gallery cards">
+  <span class="num mono">18</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Thumb pointing left"><g transform="rotate(-90 27 22)"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></g></svg>
+  <div class="main"><h3>Thumb pointing left <span class="tag">Hold</span></h3><p class="how">Fist with the thumb sticking out sideways to the left.</p></div>
+  <p class="does"><span class="lbl">Does</span> Previous card.</p>
+</li>
+<li class="row" data-text="peace sign swipe left peace sign swept to your left. jump to the first card. swipe gallery cards">
+  <span class="num mono">19</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Peace sign swipe left"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Peace sign swipe left <span class="tag">Swipe</span> <span class="motion">moves left</span></h3><p class="how">Peace sign swept to your left.</p></div>
+  <p class="does"><span class="lbl">Does</span> Jump to the first card.</p>
+</li>
+<li class="row" data-text="peace sign swipe right peace sign swept to your right. jump to the last card. swipe gallery cards">
+  <span class="num mono">20</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Peace sign swipe right"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Peace sign swipe right <span class="tag">Swipe</span> <span class="motion">moves right</span></h3><p class="how">Peace sign swept to your right.</p></div>
+  <p class="does"><span class="lbl">Does</span> Jump to the last card.</p>
+</li>
+<li class="row" data-text="both hands i love you thumb, index and little finger out on both hands, held upright together. start or stop card autoplay. two hands gallery cards">
+  <span class="num mono">21</span>
+  <svg class="glyph" viewBox="0 0 112 44" width="112" height="44" role="img" aria-label="Finger diagram for Both hands I love you"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/><rect x="62" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="71" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="80.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="89.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="98" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="60" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Both hands I love you <span class="tag">Two hands</span></h3><p class="how">Thumb, index and little finger out on both hands, held upright together.</p></div>
+  <p class="does"><span class="lbl">Does</span> Start or stop card autoplay.</p>
+</li>
+</ul></section>
+<section class="cat" aria-labelledby="c2"><h2 id="c2">Reminder and alarm <span class="count">13</span></h2>
+<ul class="list">
+<li class="row" data-text="ring and little finger up only the ring and little fingers raised, others folded. set the sitting reminder to 10 minutes. hold reminder and alarm">
+  <span class="num mono">22</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Ring and little finger up"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Ring and little finger up <span class="tag">Hold</span></h3><p class="how">Only the ring and little fingers raised, others folded.</p></div>
+  <p class="does"><span class="lbl">Does</span> Set the sitting reminder to 10 minutes.</p>
+</li>
+<li class="row" data-text="three fingers, index folded middle, ring and little fingers up, index and thumb folded. set the sitting reminder to 30 minutes. hold reminder and alarm">
+  <span class="num mono">23</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Three fingers, index folded"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Three fingers, index folded <span class="tag">Hold</span></h3><p class="how">Middle, ring and little fingers up, index and thumb folded.</p></div>
+  <p class="does"><span class="lbl">Does</span> Set the sitting reminder to 30 minutes.</p>
+</li>
+<li class="row" data-text="three finger swipe right index, middle and ring fingers up, swept to your right. add 5 minutes to the sitting reminder. swipe reminder and alarm">
+  <span class="num mono">24</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Three finger swipe right"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Three finger swipe right <span class="tag">Swipe</span> <span class="motion">moves right</span></h3><p class="how">Index, middle and ring fingers up, swept to your right.</p></div>
+  <p class="does"><span class="lbl">Does</span> Add 5 minutes to the sitting reminder.</p>
+</li>
+<li class="row" data-text="three finger swipe left the same three fingers, swept to your left. take 5 minutes off the sitting reminder. swipe reminder and alarm">
+  <span class="num mono">25</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Three finger swipe left"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Three finger swipe left <span class="tag">Swipe</span> <span class="motion">moves left</span></h3><p class="how">The same three fingers, swept to your left.</p></div>
+  <p class="does"><span class="lbl">Does</span> Take 5 minutes off the sitting reminder.</p>
+</li>
+<li class="row" data-text="four finger swipe right four fingers up, thumb folded, swept to your right. add 1 minute to the sitting reminder. swipe reminder and alarm">
+  <span class="num mono">26</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Four finger swipe right"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Four finger swipe right <span class="tag">Swipe</span> <span class="motion">moves right</span></h3><p class="how">Four fingers up, thumb folded, swept to your right.</p></div>
+  <p class="does"><span class="lbl">Does</span> Add 1 minute to the sitting reminder.</p>
+</li>
+<li class="row" data-text="four finger swipe left four fingers up, swept to your left. take 1 minute off the sitting reminder. swipe reminder and alarm">
+  <span class="num mono">27</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Four finger swipe left"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Four finger swipe left <span class="tag">Swipe</span> <span class="motion">moves left</span></h3><p class="how">Four fingers up, swept to your left.</p></div>
+  <p class="does"><span class="lbl">Does</span> Take 1 minute off the sitting reminder.</p>
+</li>
+<li class="row" data-text="both thumbs down a fist on each hand, both thumbs pointing down. reset the sitting reminder to 20 minutes. two hands reminder and alarm">
+  <span class="num mono">28</span>
+  <svg class="glyph" viewBox="0 0 112 44" width="112" height="44" role="img" aria-label="Finger diagram for Both thumbs down"><g transform="rotate(180 27 22)"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></g><g transform="rotate(180 85 22)"><rect x="62" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="71.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="80.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="89.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="98.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="60" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></g></svg>
+  <div class="main"><h3>Both thumbs down <span class="tag">Two hands</span></h3><p class="how">A fist on each hand, both thumbs pointing down.</p></div>
+  <p class="does"><span class="lbl">Does</span> Reset the sitting reminder to 20 minutes.</p>
+</li>
+<li class="row" data-text="both hands horns index and little finger up on both hands, held upright. select the reminder box so you can type minutes. two hands reminder and alarm">
+  <span class="num mono">29</span>
+  <svg class="glyph" viewBox="0 0 112 44" width="112" height="44" role="img" aria-label="Finger diagram for Both hands horns"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/><rect x="62.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="71" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="80.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="89.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="98" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="60" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Both hands horns <span class="tag">Two hands</span></h3><p class="how">Index and little finger up on both hands, held upright.</p></div>
+  <p class="does"><span class="lbl">Does</span> Select the reminder box so you can type minutes.</p>
+</li>
+<li class="row" data-text="three finger swipe up three fingers up, swept upward. raise the alarm threshold by 5 (stricter, up to 95). swipe reminder and alarm">
+  <span class="num mono">30</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Three finger swipe up"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Three finger swipe up <span class="tag">Swipe</span> <span class="motion">moves up</span></h3><p class="how">Three fingers up, swept upward.</p></div>
+  <p class="does"><span class="lbl">Does</span> Raise the alarm threshold by 5 (stricter, up to 95).</p>
+</li>
+<li class="row" data-text="three finger swipe down three fingers up, swept downward. lower the alarm threshold by 5 (more forgiving, down to 60). swipe reminder and alarm">
+  <span class="num mono">31</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Three finger swipe down"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Three finger swipe down <span class="tag">Swipe</span> <span class="motion">moves down</span></h3><p class="how">Three fingers up, swept downward.</p></div>
+  <p class="does"><span class="lbl">Does</span> Lower the alarm threshold by 5 (more forgiving, down to 60).</p>
+</li>
+<li class="row" data-text="circle clockwise point with one finger and draw a full circle in the air, clockwise as you see it on screen. snooze the posture alarm for 5 minutes. motion reminder and alarm">
+  <span class="num mono">32</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Circle clockwise"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Circle clockwise <span class="tag">Motion</span> <span class="motion">circles clockwise</span></h3><p class="how">Point with one finger and draw a full circle in the air, clockwise as you see it on screen.</p></div>
+  <p class="does"><span class="lbl">Does</span> Snooze the posture alarm for 5 minutes.</p>
+</li>
+<li class="row" data-text="circle counterclockwise point and draw a full circle the other way. cancel the snooze. motion reminder and alarm">
+  <span class="num mono">33</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Circle counterclockwise"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Circle counterclockwise <span class="tag">Motion</span> <span class="motion">circles counterclockwise</span></h3><p class="how">Point and draw a full circle the other way.</p></div>
+  <p class="does"><span class="lbl">Does</span> Cancel the snooze.</p>
+</li>
+<li class="row" data-text="clap bring both hands together quickly, like a clap, in view of the camera. play a test of the alarm sound, even when muted. two hands reminder and alarm">
+  <span class="num mono">34</span>
+  <svg class="glyph" viewBox="0 0 112 44" width="112" height="44" role="img" aria-label="Finger diagram for Clap"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/><rect x="62" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="71" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="80" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="89" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="98" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="60" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Clap <span class="tag">Two hands</span></h3><p class="how">Bring both hands together quickly, like a clap, in view of the camera.</p></div>
+  <p class="does"><span class="lbl">Does</span> Play a test of the alarm sound, even when muted.</p>
+</li>
+</ul></section>
+<section class="cat" aria-labelledby="c3"><h2 id="c3">Session and readouts <span class="count">8</span></h2>
+<ul class="list">
+<li class="row" data-text="thumb down fist with the thumb pointing straight down. clear your saved upright posture and go back to the default. hold session and readouts">
+  <span class="num mono">35</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Thumb down"><g transform="rotate(180 27 22)"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></g></svg>
+  <div class="main"><h3>Thumb down <span class="tag">Hold</span></h3><p class="how">Fist with the thumb pointing straight down.</p></div>
+  <p class="does"><span class="lbl">Does</span> Clear your saved upright posture and go back to the default.</p>
+</li>
+<li class="row" data-text="both thumbs up a fist on each hand, both thumbs pointing up. reset the seated timer to zero. two hands session and readouts">
+  <span class="num mono">36</span>
+  <svg class="glyph" viewBox="0 0 112 44" width="112" height="44" role="img" aria-label="Finger diagram for Both thumbs up"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/><rect x="62" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="71.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="80.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="89.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="98.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="60" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Both thumbs up <span class="tag">Two hands</span></h3><p class="how">A fist on each hand, both thumbs pointing up.</p></div>
+  <p class="does"><span class="lbl">Does</span> Reset the seated timer to zero.</p>
+</li>
+<li class="row" data-text="namaste press both palms together in front of you, fingers up, and hold still slowly (a fast close counts as a clap). pause or resume the seated timer. two hands session and readouts">
+  <span class="num mono">37</span>
+  <svg class="glyph" viewBox="0 0 112 44" width="112" height="44" role="img" aria-label="Finger diagram for Namaste"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/><rect x="62.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="71" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="80" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="89" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="98" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="60" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Namaste <span class="tag">Two hands</span></h3><p class="how">Press both palms together in front of you, fingers up, and hold still slowly (a fast close counts as a clap).</p></div>
+  <p class="does"><span class="lbl">Does</span> Pause or resume the seated timer.</p>
+</li>
+<li class="row" data-text="both fists close both hands into fists and hold. stop the camera. two hands session and readouts">
+  <span class="num mono">38</span>
+  <svg class="glyph" viewBox="0 0 112 44" width="112" height="44" role="img" aria-label="Finger diagram for Both fists"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/><rect x="62.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="71.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="80.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="89.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="98.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="60" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Both fists <span class="tag">Two hands</span></h3><p class="how">Close both hands into fists and hold.</p></div>
+  <p class="does"><span class="lbl">Does</span> Stop the camera.</p>
+</li>
+<li class="row" data-text="spread both hands apart open both palms, then move them apart and let them settle. show your current score, neck angle and shoulder reading. two hands session and readouts">
+  <span class="num mono">39</span>
+  <svg class="glyph" viewBox="0 0 112 44" width="112" height="44" role="img" aria-label="Finger diagram for Spread both hands apart"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/><rect x="62" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="71" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="80" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="89" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="98" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="60" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Spread both hands apart <span class="tag">Two hands</span> <span class="motion">hands move apart</span></h3><p class="how">Open both palms, then move them apart and let them settle.</p></div>
+  <p class="does"><span class="lbl">Does</span> Show your current score, neck angle and shoulder reading.</p>
+</li>
+<li class="row" data-text="squeeze both hands together open both palms and move them toward each other slowly, stopping before they touch. show how long you have been seated. two hands session and readouts">
+  <span class="num mono">40</span>
+  <svg class="glyph" viewBox="0 0 112 44" width="112" height="44" role="img" aria-label="Finger diagram for Squeeze both hands together"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/><rect x="62" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="71" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="80" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="89" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="98" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="60" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Squeeze both hands together <span class="tag">Two hands</span> <span class="motion">hands move together</span></h3><p class="how">Open both palms and move them toward each other slowly, stopping before they touch.</p></div>
+  <p class="does"><span class="lbl">Does</span> Show how long you have been seated.</p>
+</li>
+<li class="row" data-text="horns down index and little finger pointing down, middle and ring folded. generate a fresh phone pairing code. hold session and readouts">
+  <span class="num mono">41</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Horns down"><g transform="rotate(180 27 22)"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></g></svg>
+  <div class="main"><h3>Horns down <span class="tag">Hold</span></h3><p class="how">Index and little finger pointing down, middle and ring folded.</p></div>
+  <p class="does"><span class="lbl">Does</span> Generate a fresh phone pairing code.</p>
+</li>
+<li class="row" data-text="i love you thumb, index and little finger out, middle and ring folded, hand upright. open this guide page. the camera keeps running. hold session and readouts">
+  <span class="num mono">42</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for I love you"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>I love you <span class="tag">Hold</span></h3><p class="how">Thumb, index and little finger out, middle and ring folded, hand upright.</p></div>
+  <p class="does"><span class="lbl">Does</span> Open this guide page. The camera keeps running.</p>
+</li>
+</ul></section>
+<section class="cat" aria-labelledby="c4"><h2 id="c4">Display and sound <span class="count">8</span></h2>
+<ul class="list">
+<li class="row" data-text="fist swipe up closed fist swept upward. make the page text larger (up to 140%). swipe display and sound">
+  <span class="num mono">43</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Fist swipe up"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Fist swipe up <span class="tag">Swipe</span> <span class="motion">moves up</span></h3><p class="how">Closed fist swept upward.</p></div>
+  <p class="does"><span class="lbl">Does</span> Make the page text larger (up to 140%).</p>
+</li>
+<li class="row" data-text="fist swipe down closed fist swept downward. make the page text smaller (down to 80%). swipe display and sound">
+  <span class="num mono">44</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Fist swipe down"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Fist swipe down <span class="tag">Swipe</span> <span class="motion">moves down</span></h3><p class="how">Closed fist swept downward.</p></div>
+  <p class="does"><span class="lbl">Does</span> Make the page text smaller (down to 80%).</p>
+</li>
+<li class="row" data-text="four finger swipe up four fingers up, swept upward. turn high contrast on or off. swipe display and sound">
+  <span class="num mono">45</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Four finger swipe up"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Four finger swipe up <span class="tag">Swipe</span> <span class="motion">moves up</span></h3><p class="how">Four fingers up, swept upward.</p></div>
+  <p class="does"><span class="lbl">Does</span> Turn high contrast on or off.</p>
+</li>
+<li class="row" data-text="four finger swipe down four fingers up, swept downward. turn reduced motion on or off. swipe display and sound">
+  <span class="num mono">46</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Four finger swipe down"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Four finger swipe down <span class="tag">Swipe</span> <span class="motion">moves down</span></h3><p class="how">Four fingers up, swept downward.</p></div>
+  <p class="does"><span class="lbl">Does</span> Turn reduced motion on or off.</p>
+</li>
+<li class="row" data-text="both hands l shape index up and thumb wide on both hands, held upright. switch the gesture cursor between normal and large. two hands display and sound">
+  <span class="num mono">47</span>
+  <svg class="glyph" viewBox="0 0 112 44" width="112" height="44" role="img" aria-label="Finger diagram for Both hands L shape"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/><rect x="62" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="71" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="80.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="89.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="98.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="60" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Both hands L shape <span class="tag">Two hands</span></h3><p class="how">Index up and thumb wide on both hands, held upright.</p></div>
+  <p class="does"><span class="lbl">Does</span> Switch the gesture cursor between normal and large.</p>
+</li>
+<li class="row" data-text="both peace signs peace sign on both hands, held upright. mute or unmute sounds. this silences the local posture alarm too, not the phone. two hands display and sound">
+  <span class="num mono">48</span>
+  <svg class="glyph" viewBox="0 0 112 44" width="112" height="44" role="img" aria-label="Finger diagram for Both peace signs"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/><rect x="62.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="71" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="80" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="89.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="98.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="60" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Both peace signs <span class="tag">Two hands</span></h3><p class="how">Peace sign on both hands, held upright.</p></div>
+  <p class="does"><span class="lbl">Does</span> Mute or unmute sounds. This silences the local posture alarm too, not the phone.</p>
+</li>
+<li class="row" data-text="peace sign pointing down peace sign with the hand turned so the fingers point down. show or hide the small label under the cursor. hold display and sound">
+  <span class="num mono">49</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Peace sign pointing down"><g transform="rotate(180 27 22)"><rect x="4.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="40.75" y="29.75" width="4.5" height="7.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></g></svg>
+  <div class="main"><h3>Peace sign pointing down <span class="tag">Hold</span></h3><p class="how">Peace sign with the hand turned so the fingers point down.</p></div>
+  <p class="does"><span class="lbl">Does</span> Show or hide the small label under the cursor.</p>
+</li>
+<li class="row" data-text="wave open palm waving side to side, three or four sweeps. dismiss the cookie notice (the dismiss choice, not accept). motion display and sound">
+  <span class="num mono">50</span>
+  <svg class="glyph" viewBox="0 0 56 44" width="56" height="44" role="img" aria-label="Finger diagram for Wave"><rect x="4" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="13" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="22" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="31" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="40" y="12" width="6" height="26" rx="3" fill="currentColor"/><rect x="2" y="39" width="47" height="3" rx="1.5" fill="currentColor" opacity=".25"/></svg>
+  <div class="main"><h3>Wave <span class="tag">Motion</span> <span class="motion">waves side to side</span></h3><p class="how">Open palm waving side to side, three or four sweeps.</p></div>
+  <p class="does"><span class="lbl">Does</span> Dismiss the cookie notice (the Dismiss choice, not Accept).</p>
+</li>
+</ul></section>
+
+  <p class="empty" id="gEmpty" hidden>No gestures match that. Try a shorter word.</p>
+  <p style="margin-top:48px;"><a class="cta" href="#demo">Try them in the live demo</a></p>
+</div>
+</main>
+<div class="g-foot"><div class="wrap">ThinkPulse, prototype build. Made by Arpit Singh. <a href="#privacy">Privacy</a> &nbsp; <a href="#terms">Terms</a></div></div>
+</div>
+
+<div class="gesture-toast" id="gestureToast" aria-live="polite"></div>
+<div class="gesture-rail" id="gestureRail" aria-hidden="true"><span>Scroll up</span><span>Scroll down</span></div>
+<div class="gesture-cursor" id="gestureCursor" aria-hidden="true"><span class="g-label" id="gestureLabel"></span></div>
+
 <div class="cookie-bar" id="cookieBar" role="region" aria-label="Cookie notice" hidden>
-  <p>This page sets one cookie, to remember that you've seen this notice. No tracking or advertising cookies. See the <a href="#cookies">cookie policy</a>.</p>
+  <p>This page sets one cookie to remember your choice. Accept also lets it save your light or dark theme and your posture history in this browser, and load the IBM Plex typeface from Google Fonts. Decline keeps all of that in memory only, loads no fonts, and clears anything saved earlier. No tracking or advertising. See the <a href="#cookies">cookie policy</a>.</p>
   <div class="actions">
-    <button class="reject" id="cookieReject">Dismiss</button>
+    <button class="reject" id="cookieReject">Decline</button>
     <button class="accept" id="cookieAccept">Accept</button>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
+<script>
+// Third-party code is fetched only when a feature needs it (the camera, or phone pairing),
+// never just because the page opened. Versions are pinned.
+(function(){
+  var LIBS = {
+    qr:'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
+    mqtt:'https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js',
+    tf:'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js',
+    pose:'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js',
+    hands:'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js'
+  };
+  var GLOBALS = {qr:'QRCode', mqtt:'mqtt', tf:'tf', pose:'poseDetection', hands:'Hands'};
+  var pending = {};
+  window.TP_loadLib = function(key){
+    if(window[GLOBALS[key]]) return Promise.resolve();
+    if(pending[key]) return pending[key];
+    pending[key] = new Promise(function(resolve, reject){
+      var s = document.createElement('script');
+      s.src = LIBS[key]; s.crossOrigin = 'anonymous';
+      s.onload = function(){ resolve(); };
+      s.onerror = function(){ delete pending[key]; s.remove(); reject(new Error('Could not load the ' + key + ' library')); };
+      document.head.appendChild(s);
+    });
+    return pending[key];
+  };
+})();
+</script>
 <script>
 (function(){
   const video = document.getElementById('video');
@@ -361,6 +1051,8 @@
   const shoulderVal = document.getElementById('shoulderVal');
   const timeVal = document.getElementById('timeVal');
   const statusLine = document.getElementById('statusLine');
+  const presence = document.getElementById('presence');
+  const presenceLabel = document.getElementById('presenceLabel');
 
   let detector = null;
   let running = false;
@@ -371,6 +1063,843 @@
   let remindedAt = 0;
   let alarmInterval = null;
   let pairClient = null, pairSession = null, phoneConnected = false, lastAlertSent = 0, qrInstance = null;
+  let lastPoseSeen = null;
+
+  // Live presence avatar: reflects the current frame's posture state in the
+  // header, so a visitor glancing at the tab (or another viewer in a shared
+  // screen) can see desk status at a glance without reading the score.
+  function setPresence(state, label){
+    presence.className = 'presence ' + state;
+    presenceLabel.textContent = label;
+  }
+
+  // Carousel: plain manual nav (arrows, dots) plus the open-palm swipe
+  // gesture handled below in the hand-tracking block.
+  const slides = document.querySelectorAll('.carousel-slide');
+  const track = document.getElementById('carouselTrack');
+  const dotsWrap = document.getElementById('carouselDots');
+  let slideIndex = 0;
+  slides.forEach((_, i)=>{
+    const d = document.createElement('button');
+    d.setAttribute('role','tab');
+    d.setAttribute('aria-label', 'Slide ' + (i+1));
+    if(i===0) d.classList.add('active');
+    d.addEventListener('click', ()=>goToSlide(i));
+    dotsWrap.appendChild(d);
+  });
+  function goToSlide(i){
+    slideIndex = (i+slides.length) % slides.length;
+    track.style.transform = 'translateX(-' + (slideIndex*100) + '%)';
+    [...dotsWrap.children].forEach((d,j)=>d.classList.toggle('active', j===slideIndex));
+  }
+  document.getElementById('prevSlide').addEventListener('click', ()=>goToSlide(slideIndex-1));
+  document.getElementById('nextSlide').addEventListener('click', ()=>goToSlide(slideIndex+1));
+
+  // Hand-gesture control, via MediaPipe Hands (21 landmarks per hand,
+  // separate from the MoveNet body-pose model used for scoring above, and
+  // only run while the camera is on). One finger points a cursor; pinch
+  // clicks whatever is under it, or drags to scroll; an open palm swiped
+  // sideways flips the gallery card, swiped up/down scrolls the page; a
+  // held thumbs-up calibrates; a held peace sign switches light/dark; both
+  // open palms held together jump to the phone-pairing QR code; a held
+  // fist pauses gesture control entirely (an open palm resumes it) so
+  // typing or reaching across the keyboard doesn't fire stray clicks.
+  //
+  // Two things keep it feeling fast rather than laggy, since the hand model
+  // itself only produces a fresh reading every ~90ms (faster than that and
+  // most laptops start dropping frames):
+  //  1. The cursor dot does NOT jump straight to each new reading. A
+  //     separate screen-refresh-rate loop (cursorRenderLoop) eases it
+  //     toward the latest target every frame, so motion reads as smooth
+  //     60fps tracking even though new data arrives roughly 11 times a
+  //     second, the same trick game controllers use for input smoothing.
+  //  2. Detection/tracking confidence is tuned slightly looser than the
+  //     library default so a hand locks on sooner, trading a touch of
+  //     precision for a snappier first read.
+  const gestureToast = document.getElementById('gestureToast');
+  const gestureCursor = document.getElementById('gestureCursor');
+  const gestureLabel = document.getElementById('gestureLabel');
+  const gestureRail = document.getElementById('gestureRail');
+  let handTracker = null, handSendBusy = false, handTrackerFailed = false;
+  let lastHandSend = 0;
+  let gesturePaused = false, staticGesture = null, staticSince = 0, staticDone = false;
+  let pinchActive = false, pinchMoved = false, pinchStartX = 0, pinchStartY = 0, pinchLastY = 0;
+  let palmStartX = null, palmStartY = null, swipeLatched = false, qrGestureSince = 0, qrGestureDone = false;
+  let gestureToastTimer = null, labelTimer = null;
+  let cursorTargetX = 0, cursorTargetY = 0, cursorDrawX = 0, cursorDrawY = 0, cursorLive = false;
+
+  function showGestureToast(message){
+    gestureToast.textContent = message;
+    gestureToast.classList.add('show');
+    clearTimeout(gestureToastTimer);
+    gestureToastTimer = setTimeout(()=>gestureToast.classList.remove('show'), 1500);
+  }
+  function showGestureLabel(text){
+    gestureLabel.textContent = text;
+    gestureLabel.classList.toggle('show', !!text);
+    clearTimeout(labelTimer);
+    if(text) labelTimer = setTimeout(()=>gestureLabel.classList.remove('show'), 650);
+  }
+  // A quiet, short click tick, distinct from the posture alarm's beep()
+  // below: higher pitch, a fraction of the length, so a selection or a
+  // recognized gesture gives a crisp confirmation without being alarming.
+  function clickTick(freq){
+    if(soundMuted) return;
+    try{
+      const c = new (window.AudioContext||window.webkitAudioContext)();
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = 'sine'; o.frequency.value = freq || 720; o.connect(g); g.connect(c.destination);
+      g.gain.setValueAtTime(0.045, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+0.09);
+      o.start(); o.stop(c.currentTime+0.09);
+    }catch(e){}
+  }
+  function spawnRipple(x,y){
+    const r = document.createElement('div');
+    r.className = 'g-ripple';
+    r.style.left = x+'px'; r.style.top = y+'px';
+    document.body.appendChild(r);
+    setTimeout(()=>r.remove(), 480);
+  }
+
+  // Theme: toggled by a held peace sign, remembered across visits.
+  function applyTheme(mode){
+    document.documentElement.setAttribute('data-theme', mode);
+    if(storageAllowed()){ try{ localStorage.setItem('tp_theme', mode); }catch(e){} }
+  }
+  (function initTheme(){
+    let saved = null;
+    if(storageAllowed()){ try{ saved = localStorage.getItem('tp_theme'); }catch(e){} }
+    if(saved === 'dark' || saved === 'light') applyTheme(saved);
+    else if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme('dark');
+  })();
+  function toggleTheme(){
+    applyTheme(document.documentElement.getAttribute('data-theme')==='dark' ? 'light' : 'dark');
+  }
+
+  // ===== Extended gesture set =====
+  // The full guide (every pose, how to make it, what it does) lives on its
+  // own in-site page (#gestures), not on the home page. Single-hand poses are read
+  // from which fingers are extended plus which way the hand points; they
+  // fire after being held still for about half a second. Motion gestures
+  // (swipes, circles, waves) are read from a short rolling history of where
+  // the hand has been. Two-hand gestures use both hands and the distance
+  // between the wrists.
+  const rootEl = document.documentElement;
+  const SECTION_IDS = ['how','demo','gallery','connect','timeline','privacy','cookies','terms','refunds'];
+  let soundMuted = false, handLabelsOn = true, timerPaused = false, snoozeUntil = 0, alarmThreshold = 80;
+  let textScale = 1, autoplayTimer = null, lastActionAt = 0;
+  let swipeCooldownUntil = 0, circleCooldownUntil = 0, waveCooldownUntil = 0, twoCooldownUntil = 0;
+  let twoGesture = null, twoSince = 0, twoDone = false, twoOriginD = 0;
+  let staticOrigin = {x:0,y:0};
+  const poseHist = [], twoHist = [];
+  // One Euro filter: steady when the hand is slow (kills jitter), quick to
+  // follow when it moves fast (kills lag). Beats a fixed smoothing factor.
+  function makeEuro(minCut,beta){
+    let xp = null, dxp = 0, tp = 0;
+    const alpha = (cut,dt)=>1/(1+(1/(2*Math.PI*cut))/dt);
+    return {
+      reset(){ xp = null; },
+      f(x,t){
+        if(xp === null){ xp = x; tp = t; dxp = 0; return x; }
+        const dt = Math.max(0.001,(t-tp)/1000);
+        dxp += alpha(1,dt)*(((x-xp)/dt)-dxp);
+        xp += alpha(minCut+beta*Math.abs(dxp),dt)*(x-xp);
+        tp = t; return xp;
+      }
+    };
+  }
+  const euroX = makeEuro(1.3,0.02), euroY = makeEuro(1.3,0.02);
+  function placeCursor(x,y){ gestureCursor.style.transform = 'translate3d('+x+'px,'+y+'px,0) translate(-50%,-50%)'; }
+
+  // Hand skeleton + live read-out drawn over the camera feed.
+  const handCanvas = document.getElementById('handOverlay'), hctx = handCanvas.getContext('2d');
+  const gestureHud = document.getElementById('gestureHud'), hudName = document.getElementById('hudName');
+  const hudDo = document.getElementById('hudDo'), hudBar = document.getElementById('hudBar');
+  const HAND_LINES = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+  function drawHands(hands){
+    const w = video.videoWidth || 640, hh = video.videoHeight || 480;
+    if(handCanvas.width !== w || handCanvas.height !== hh){ handCanvas.width = w; handCanvas.height = hh; }
+    hctx.clearRect(0,0,w,hh);
+    hands.forEach(lm=>{
+      hctx.strokeStyle = 'rgba(63,203,166,.9)'; hctx.lineWidth = 2.5; hctx.lineCap = 'round';
+      HAND_LINES.forEach(([a,b])=>{ hctx.beginPath(); hctx.moveTo(lm[a].x*w,lm[a].y*hh); hctx.lineTo(lm[b].x*w,lm[b].y*hh); hctx.stroke(); });
+      hctx.fillStyle = '#FAF9F6';
+      lm.forEach(p=>{ hctx.beginPath(); hctx.arc(p.x*w,p.y*hh,3,0,7); hctx.fill(); });
+      hctx.fillStyle = '#3FCBA6';
+      [4,8,12,16,20].forEach(i=>{ hctx.beginPath(); hctx.arc(lm[i].x*w,lm[i].y*hh,6,0,7); hctx.fill(); });
+    });
+  }
+  let hudKey = '';
+  function setHud(name,doText,progress){
+    const key = name+'|'+doText;
+    if(key !== hudKey){ hudKey = key; hudName.textContent = name; hudDo.textContent = doText; gestureHud.hidden = false; }
+    hudBar.style.width = Math.round(Math.max(0,Math.min(1,progress))*100)+'%';
+  }
+  function hideHud(){ hudKey = ''; gestureHud.hidden = true; hudBar.style.width = '0%'; }
+  const POSE_NAMES = {open:'Open palm', fist:'Fist', thumb:'Thumb', three:'Three fingers', four:'Four fingers', L:'L shape', horns:'Horns', shaka:'Shaka', pinky:'Little finger', ily:'I love you', ringpinky:'Ring and little finger', mrp:'Middle, ring, little', peace:'Peace sign', point:'Pointing', pinch:'Pinch'};
+  const STATIC_INFO = {
+    'three:up':['Three fingers up','How it works'], 'three:down':['Three fingers down','Terms'],
+    'four:up':['Four fingers up','Try it'], 'four:down':['Four fingers down','Refunds'],
+    'L:up':['L shape up','Explore'], 'L:down':['L shape down','Cookies'],
+    'horns:up':['Horns up','Connect phone'], 'horns:down':['Horns down','New pairing code'],
+    'shaka:up':['Shaka up','History'], 'shaka:down':['Shaka down','Privacy'],
+    'pinky:up':['Little finger','Footer'], 'ily:up':['I love you','Gesture guide'],
+    'open:high':['Open palm high','Top of page'], 'open:low':['Open palm low','Bottom of page'],
+    'thumb:right':['Thumb right','Next card'], 'thumb:left':['Thumb left','Previous card'],
+    'thumb:down':['Thumb down','Clear baseline'], 'thumb:up':['Thumbs up','Calibrate'],
+    'ringpinky:up':['Ring and little','Reminder 10 min'], 'mrp:up':['Three, index folded','Reminder 30 min'],
+    'peace':['Peace sign','Light or dark'], 'peace:down':['Peace sign down','Cursor labels'],
+    'fist':['Fist','Pause gestures']
+  };
+  const TWO_INFO = {
+    'both-fist':['Both fists','Stop camera'], 'both-thumbup':['Both thumbs up','Reset timer'],
+    'both-thumbdown':['Both thumbs down','Reminder 20 min'], 'both-peace':['Both peace signs','Mute'],
+    'both-L':['Both L shapes','Large cursor'], 'namaste':['Namaste','Pause timer'],
+    'both-ily':['Both I love you','Card autoplay'], 'both-horns':['Both horns','Edit reminder']
+  };
+  function updateHud(h,two,now){
+    if(two){
+      const info = twoGesture && TWO_INFO[twoGesture];
+      if(info) setHud(info[0], info[1], twoDone ? 1 : (now-twoSince)/800);
+      else setHud('Two hands','',0);
+      return;
+    }
+    const k = staticGesture, info = k && STATIC_INFO[k];
+    if(info) setHud(info[0], info[1], staticDone ? 1 : (now-staticSince)/holdMs(k));
+    else if(h.pinch) setHud('Pinch','click',1);
+    else if(h.pointing) setHud('Pointing','hold still to click, right edge to scroll',0);
+    else setHud(POSE_NAMES[h.pose] || 'Hand','',0);
+  }
+
+  function motionBehavior(){ return rootEl.dataset.motion === 'reduced' ? 'auto' : 'smooth'; }
+  function gotoSection(id){
+    const el = id === 'footer' ? document.querySelector('footer') : document.getElementById(id);
+    if(el) el.scrollIntoView({behavior:motionBehavior(), block:'start'});
+  }
+  function currentSectionIndex(){
+    let idx = -1;
+    SECTION_IDS.forEach((id,i)=>{
+      const el = document.getElementById(id);
+      if(el && el.getBoundingClientRect().top <= 140) idx = i;
+    });
+    return idx;
+  }
+  function setLimit(v){
+    v = Math.min(240, Math.max(1, Math.round(v)));
+    limitInput.value = v;
+    return 'Reminder every ' + v + ' min';
+  }
+  function nudgeLimit(delta){ return setLimit((parseFloat(limitInput.value)||20) + delta); }
+  function nudgeThreshold(delta){
+    alarmThreshold = Math.min(95, Math.max(60, alarmThreshold + delta));
+    return 'Alarm fires below ' + alarmThreshold;
+  }
+  function setTextScale(v){
+    textScale = Math.min(1.4, Math.max(0.8, Math.round(v*10)/10));
+    document.querySelector('.site').style.zoom = textScale;
+    return 'Text size ' + Math.round(textScale*100) + '%';
+  }
+  function flipAttr(name, value, onMsg, offMsg){
+    if(rootEl.dataset[name] === value){ delete rootEl.dataset[name]; return offMsg; }
+    rootEl.dataset[name] = value; return onMsg;
+  }
+  function cardMsg(){ return 'Card ' + (slideIndex+1) + ' of ' + slides.length; }
+
+  const ACTIONS = {
+    'sec-how': ()=>{ gotoSection('how'); return 'How it works'; },
+    'sec-demo': ()=>{ gotoSection('demo'); return 'Try it'; },
+    'sec-gallery': ()=>{ gotoSection('gallery'); return 'Explore'; },
+    'sec-connect': ()=>{ gotoSection('connect'); return 'Connect phone'; },
+    'sec-timeline': ()=>{ gotoSection('timeline'); return 'History'; },
+    'sec-privacy': ()=>{ gotoSection('privacy'); return 'Privacy'; },
+    'sec-cookies': ()=>{ gotoSection('cookies'); return 'Cookies'; },
+    'sec-terms': ()=>{ gotoSection('terms'); return 'Terms'; },
+    'sec-refunds': ()=>{ gotoSection('refunds'); return 'Refunds'; },
+    'sec-footer': ()=>{ gotoSection('footer'); return 'Footer'; },
+    'sec-prev': ()=>{ gotoSection(SECTION_IDS[Math.max(0, currentSectionIndex()-1)]); return 'Previous section'; },
+    'sec-next': ()=>{ gotoSection(SECTION_IDS[Math.min(SECTION_IDS.length-1, currentSectionIndex()+1)]); return 'Next section'; },
+    'top': ()=>{ window.scrollTo({top:0, behavior:motionBehavior()}); return 'Top of page'; },
+    'bottom': ()=>{ window.scrollTo({top:document.documentElement.scrollHeight, behavior:motionBehavior()}); return 'Bottom of page'; },
+    'page-up': ()=>{ window.scrollBy({top:-window.innerHeight*0.8, behavior:motionBehavior()}); return 'Page up'; },
+    'page-down': ()=>{ window.scrollBy({top:window.innerHeight*0.8, behavior:motionBehavior()}); return 'Page down'; },
+    'card-next': ()=>{ goToSlide(slideIndex+1); return cardMsg(); },
+    'card-prev': ()=>{ goToSlide(slideIndex-1); return cardMsg(); },
+    'card-first': ()=>{ goToSlide(0); return cardMsg(); },
+    'card-last': ()=>{ goToSlide(slides.length-1); return cardMsg(); },
+    'autoplay': ()=>{
+      if(autoplayTimer){ clearInterval(autoplayTimer); autoplayTimer = null; return 'Card autoplay off'; }
+      autoplayTimer = setInterval(()=>goToSlide(slideIndex+1), 3500);
+      return 'Card autoplay on';
+    },
+    'limit-10': ()=>setLimit(10),
+    'limit-30': ()=>setLimit(30),
+    'limit-reset': ()=>setLimit(20),
+    'limit-up5': ()=>nudgeLimit(5),
+    'limit-down5': ()=>nudgeLimit(-5),
+    'limit-up1': ()=>nudgeLimit(1),
+    'limit-down1': ()=>nudgeLimit(-1),
+    'focus-limit': ()=>{
+      gotoSection('demo'); limitInput.focus({preventScroll:true}); limitInput.select();
+      return 'Type the reminder minutes';
+    },
+    'thr-up': ()=>nudgeThreshold(5),
+    'thr-down': ()=>nudgeThreshold(-5),
+    'snooze': ()=>{
+      snoozeUntil = performance.now() + 300000;
+      if(alarmInterval){ clearInterval(alarmInterval); alarmInterval = null; publishClear(); }
+      return 'Posture alarm snoozed for 5 min';
+    },
+    'snooze-cancel': ()=>{ snoozeUntil = 0; return 'Snooze cancelled'; },
+    'test-alarm': ()=>{ beep(true); setTimeout(()=>beep(true), 400); return 'Test alarm'; },
+    'reset-baseline': ()=>{ baseline = null; return 'Baseline cleared, using the default'; },
+    'reset-timer': ()=>{ seatedSeconds = 0; remindedAt = 0; timeVal.textContent = fmt(0); return 'Seated timer reset'; },
+    'pause-timer': ()=>{ timerPaused = !timerPaused; return timerPaused ? 'Seated timer paused' : 'Seated timer running'; },
+    'calibrate': ()=>{ calibrateBtn.click(); return 'Posture baseline calibrated'; },
+    'stop-camera': ()=>{ if(!stopBtn.disabled) stopBtn.click(); return 'Camera stopped'; },
+    'read-score': ()=>'Score ' + scoreVal.textContent + ', neck ' + neckVal.textContent + ', shoulders ' + shoulderVal.textContent,
+    'read-time': ()=>'Seated ' + timeVal.textContent,
+    'new-pair': ()=>{ document.getElementById('pairBtn').click(); gotoSection('connect'); return 'New pairing code'; },
+    'dismiss-cookie': ()=>{
+      const bar = document.getElementById('cookieBar');
+      if(bar && !bar.hidden){ document.getElementById('cookieReject').click(); return 'Cookie notice dismissed'; }
+      return 'No cookie notice showing';
+    },
+    'theme': ()=>{ toggleTheme(); return rootEl.getAttribute('data-theme') === 'dark' ? 'Dark mode on' : 'Light mode on'; },
+    'contrast': ()=>flipAttr('contrast','high','High contrast on','High contrast off'),
+    'motion': ()=>flipAttr('motion','reduced','Reduced motion on','Reduced motion off'),
+    'large-cursor': ()=>flipAttr('cursor','large','Large cursor on','Large cursor off'),
+    'text-up': ()=>setTextScale(textScale + 0.1),
+    'text-down': ()=>setTextScale(textScale - 0.1),
+    'mute': ()=>{ soundMuted = !soundMuted; return soundMuted ? 'Sounds muted, posture alarm too' : 'Sounds on'; },
+    'labels': ()=>{ handLabelsOn = !handLabelsOn; if(!handLabelsOn) showGestureLabel(''); return handLabelsOn ? 'Cursor labels on' : 'Cursor labels off'; },
+    'open-guide': ()=>{ location.hash = '#gestures'; return 'Opening the gesture guide'; }
+  };
+  function runAction(id){
+    const fn = ACTIONS[id];
+    if(!fn) return;
+    const now = performance.now();
+    if(now - lastActionAt < 350) return;
+    lastActionAt = now;
+    const msg = fn();
+    clickTick(840);
+    if(msg) showGestureToast(msg);
+  }
+
+  // Held poses, keyed by pose + direction the hand points.
+  const STATIC = {
+    'three:up':'sec-how', 'three:down':'sec-terms',
+    'four:up':'sec-demo', 'four:down':'sec-refunds',
+    'L:up':'sec-gallery', 'L:down':'sec-cookies',
+    'horns:up':'sec-connect', 'horns:down':'new-pair',
+    'shaka:up':'sec-timeline', 'shaka:down':'sec-privacy',
+    'pinky:up':'sec-footer', 'ily:up':'open-guide',
+    'open:high':'top', 'open:low':'bottom',
+    'thumb:right':'card-next', 'thumb:left':'card-prev',
+    'thumb:down':'reset-baseline', 'thumb:up':'calibrate',
+    'ringpinky:up':'limit-10', 'mrp:up':'limit-30',
+    'peace':'theme', 'peace:down':'labels'
+  };
+  // Moving poses, keyed by pose + swipe direction.
+  const SWIPES = {
+    'peace:up':'page-up', 'peace:down':'page-down', 'peace:left':'card-first', 'peace:right':'card-last',
+    'three:right':'limit-up5', 'three:left':'limit-down5', 'three:up':'thr-up', 'three:down':'thr-down',
+    'fist:up':'text-up', 'fist:down':'text-down', 'fist:left':'sec-prev', 'fist:right':'sec-next',
+    'four:up':'contrast', 'four:down':'motion', 'four:right':'limit-up1', 'four:left':'limit-down1'
+  };
+  const TWOHAND = {
+    'both-fist':'stop-camera', 'both-thumbup':'reset-timer', 'both-thumbdown':'limit-reset',
+    'both-peace':'mute', 'both-L':'large-cursor', 'namaste':'pause-timer',
+    'both-ily':'autoplay', 'both-horns':'focus-limit'
+  };
+
+  function handDistance(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+  function avg(list){ return list.reduce((s,v)=>s+v,0)/(list.length||1); }
+
+  // Reads one hand's 21 landmarks into a small summary: which fingers are
+  // out, which way the hand and thumb point, and a pose name.
+  function readHand(lm){
+    const wrist = lm[0], palmScale = handDistance(lm[0],lm[9]) || 0.001;
+    const ext = [8,12,16,20].map(tip=>handDistance(lm[tip],wrist) > handDistance(lm[tip-2],wrist)*1.1);
+    const thumbOut = handDistance(lm[4],lm[5]) > handDistance(lm[3],lm[5])*1.1;
+    const wideThumb = handDistance(lm[4],lm[5]) > palmScale*0.85;
+    // A pinch needs the index tip clearly away from the palm; a curled index in a
+    // fist sits next to the thumb too, and must not read as a pinch.
+    const pinch = handDistance(lm[4],lm[8]) < palmScale*0.36 && handDistance(lm[8],wrist) > handDistance(lm[5],wrist)*1.1;
+    const vx = lm[9].x-lm[0].x, vy = lm[9].y-lm[0].y;
+    const orient = Math.abs(vy) > Math.abs(vx)*0.7 ? (vy<0 ? 'up' : 'down') : 'side';
+    // +x is the viewer's right, since the camera view is mirrored on screen.
+    const tdx = lm[2].x-lm[4].x, tdy = lm[4].y-lm[2].y;
+    let thumbDir = null;
+    if(Math.abs(tdy) > Math.abs(tdx)*1.2) thumbDir = tdy<0 ? 'up' : 'down';
+    else if(Math.abs(tdx) > Math.abs(tdy)*1.2) thumbDir = tdx>0 ? 'right' : 'left';
+    const [i,m,r,p] = ext, t = thumbOut;
+    const pointing = i && !m && !r && !p && !pinch;
+    let pose = 'other';
+    if(pinch) pose = 'pinch';
+    else if(t && i && m && r && p) pose = 'open';
+    else if(!t && !i && !m && !r && !p) pose = 'fist';
+    else if(t && !i && !m && !r && !p) pose = 'thumb';
+    else if(!t && i && m && r && !p) pose = 'three';
+    else if(!t && i && m && r && p) pose = 'four';
+    else if(i && !m && !r && !p) pose = (t && wideThumb) ? 'L' : 'point';
+    else if(!t && i && !m && !r && p) pose = 'horns';
+    else if(t && !i && !m && !r && p) pose = 'shaka';
+    else if(!t && !i && !m && !r && p) pose = 'pinky';
+    else if(t && i && !m && !r && p) pose = 'ily';
+    else if(!t && !i && !m && r && p) pose = 'ringpinky';
+    else if(!t && !i && m && r && p) pose = 'mrp';
+    else if(i && m && !r && !p) pose = 'peace';
+    return {
+      pose, pinch, pointing, orient, thumbDir,
+      wx:1-wrist.x, wy:wrist.y, px:1-lm[9].x, py:lm[9].y, ix:1-lm[8].x, iy:lm[8].y
+    };
+  }
+  function staticKey(h){
+    switch(h.pose){
+      case 'fist': return 'fist';
+      case 'thumb': return h.thumbDir ? 'thumb:'+h.thumbDir : null;
+      case 'open': return h.py < 0.25 ? 'open:high' : (h.py > 0.78 ? 'open:low' : 'open');
+      case 'peace': return h.orient==='down' ? 'peace:down' : (h.orient==='up' ? 'peace' : null);
+      case 'three': case 'four': case 'L': case 'horns': case 'shaka':
+        return h.orient==='up' ? h.pose+':up' : (h.orient==='down' ? h.pose+':down' : null);
+      case 'pinky': case 'ily': case 'ringpinky': case 'mrp':
+        return h.orient==='up' ? h.pose+':up' : null;
+    }
+    return null;
+  }
+  function holdMs(key){
+    if(key.indexOf('L:') === 0) return 850;
+    if(key === 'open:high' || key === 'open:low') return 900;
+    if(key === 'fist' || key === 'thumb:up' || key === 'peace' || key === 'open') return 550;
+    return 650;
+  }
+  // A held pose only counts while the hand stays roughly still, so a swipe
+  // that happens to pass through a pose never fires the held action.
+  function trackHold(key,h,now){
+    if(key !== staticGesture){ staticGesture = key; staticSince = now; staticDone = false; staticOrigin = {x:h.wx,y:h.wy}; return; }
+    if(!staticDone && Math.hypot(h.wx-staticOrigin.x, h.wy-staticOrigin.y) > 0.08){
+      staticSince = now; staticOrigin = {x:h.wx,y:h.wy};
+    }
+  }
+  function holdReady(key,ms,now){ return !!key && key === staticGesture && !staticDone && now-staticSince >= ms; }
+
+  function resetHandState(){
+    gestureCursor.classList.remove('visible','pinching');
+    showGestureLabel('');
+    cursorLive = false; euroX.reset(); euroY.reset(); hideHud(); gestureRail.classList.remove('visible'); gestureCursor.style.setProperty('--dwell', 0);
+    pinchActive = false; pinchMoved = false; palmStartX = null; palmStartY = null; swipeLatched = false;
+    staticGesture = null; staticDone = false; qrGestureSince = 0; qrGestureDone = false;
+    twoGesture = null; twoDone = false;
+  }
+
+  function pushHist(h,now){
+    poseHist.push({t:now, pose:h.pose, pointing:h.pointing, mx:h.wx, my:h.wy, ix:h.ix, iy:h.iy});
+    while(poseHist.length && now-poseHist[0].t > 1500) poseHist.shift();
+  }
+  function detectSwipe(now,pose){
+    if(now < swipeCooldownUntil) return null;
+    const win = poseHist.filter(e=>now-e.t <= 550 && e.pose === pose);
+    if(win.length < 3) return null;
+    const a = win[0], b = win[win.length-1];
+    if(b.t-a.t < 180) return null;
+    const dx = b.mx-a.mx, dy = b.my-a.my;
+    if(Math.abs(dx) >= 0.17 && Math.abs(dx) > Math.abs(dy)*1.5) return dx>0 ? 'right' : 'left';
+    if(Math.abs(dy) >= 0.17 && Math.abs(dy) > Math.abs(dx)*1.5) return dy>0 ? 'down' : 'up';
+    return null;
+  }
+  // Index fingertip tracing a loop: sum the signed angle swept around the
+  // path's centre; about 300 degrees or more counts as a circle.
+  function detectCircle(now){
+    if(now < circleCooldownUntil) return null;
+    const pts = poseHist.filter(e=>now-e.t <= 1400 && e.pointing);
+    if(pts.length < 9) return null;
+    const cx = avg(pts.map(e=>e.ix)), cy = avg(pts.map(e=>e.iy));
+    let sum = 0;
+    for(let n=1; n<pts.length; n++){
+      let d = Math.atan2(pts[n].iy-cy, pts[n].ix-cx) - Math.atan2(pts[n-1].iy-cy, pts[n-1].ix-cx);
+      while(d > Math.PI) d -= 2*Math.PI;
+      while(d < -Math.PI) d += 2*Math.PI;
+      sum += d;
+    }
+    const radius = avg(pts.map(e=>Math.hypot(e.ix-cx, e.iy-cy)));
+    if(Math.abs(sum) > 5.0 && radius > 0.03 && radius < 0.3) return sum > 0 ? 'cw' : 'ccw';
+    return null;
+  }
+  // Open palm moving side to side: count direction reversals.
+  function detectWave(now){
+    if(now < waveCooldownUntil) return false;
+    const pts = poseHist.filter(e=>now-e.t <= 1300 && e.pose === 'open');
+    if(pts.length < 7) return false;
+    let dir = 0, extreme = pts[0].mx, flips = 0;
+    for(let n=1; n<pts.length; n++){
+      const dx = pts[n].mx-extreme;
+      if(dir >= 0 && dx < -0.045){ if(dir === 1) flips++; dir = -1; extreme = pts[n].mx; }
+      else if(dir <= 0 && dx > 0.045){ if(dir === -1) flips++; dir = 1; extreme = pts[n].mx; }
+      else if((dir === 1 && pts[n].mx > extreme) || (dir === -1 && pts[n].mx < extreme)) extreme = pts[n].mx;
+    }
+    return flips >= 3;
+  }
+
+  function twoKey(a,b,d){
+    const both = (pose)=>a.pose === pose && b.pose === pose;
+    const bothUp = a.orient === 'up' && b.orient === 'up';
+    if(both('fist')) return 'both-fist';
+    if(both('thumb') && a.thumbDir === b.thumbDir){
+      if(a.thumbDir === 'up') return 'both-thumbup';
+      if(a.thumbDir === 'down') return 'both-thumbdown';
+    }
+    if(bothUp && both('peace')) return 'both-peace';
+    if(bothUp && both('L')) return 'both-L';
+    if(bothUp && both('ily')) return 'both-ily';
+    if(bothUp && both('horns')) return 'both-horns';
+    const flat = p=>p === 'open' || p === 'four';
+    if(bothUp && flat(a.pose) && flat(b.pose) && d < 0.15) return 'namaste';
+    return null;
+  }
+  function handleTwoHands(infos,d,now){
+    const a = infos[0], b = infos[1];
+    const bothOpen = a.pose === 'open' && b.pose === 'open';
+    // Both open palms held apart: phone pairing QR code.
+    if(bothOpen && d >= 0.25 && now >= twoCooldownUntil){
+      if(!qrGestureSince) qrGestureSince = now;
+      if(!qrGestureDone && now-qrGestureSince > 900){
+        qrGestureDone = true;
+        clickTick(900);
+        document.getElementById('pairBtn').click();
+        gotoSection('connect');
+        showGestureToast('Phone pairing QR code opened');
+      }
+    } else { qrGestureSince = 0; qrGestureDone = false; }
+
+    const flat = p=>p === 'open' || p === 'four';
+    twoHist.push({t:now, d, open:flat(a.pose) && flat(b.pose)});
+    while(twoHist.length && now-twoHist[0].t > 1300) twoHist.shift();
+    if(now >= twoCooldownUntil){
+      // Clap: wrists close fast, well under a normal hand gap.
+      const recent = twoHist.filter(e=>now-e.t <= 380);
+      if(recent.length >= 2 && d < 0.18 && Math.max(...recent.map(e=>e.d))-d >= 0.22){
+        twoCooldownUntil = now+1500; twoHist.length = 0; qrGestureSince = 0;
+        runAction('test-alarm'); return;
+      }
+      // Spread or squeeze: open hands move apart or together, then settle.
+      const win = twoHist.filter(e=>now-e.t <= 900);
+      if(win.length >= 4 && win.every(e=>e.open)){
+        const delta = d-win[0].d;
+        const older = win.filter(e=>now-e.t >= 180);
+        const ref = older.length ? older[older.length-1].d : win[0].d;
+        const settled = Math.abs(d-ref) < 0.04;
+        let id = null;
+        if(delta >= 0.2 && settled) id = 'read-score';
+        else if(delta <= -0.2 && d >= 0.15 && settled) id = 'read-time';
+        if(id){ twoCooldownUntil = now+1500; twoHist.length = 0; qrGestureSince = 0; runAction(id); return; }
+      }
+    }
+    // Held two-hand poses.
+    const key = twoKey(a,b,d);
+    if(key !== twoGesture){ twoGesture = key; twoSince = now; twoDone = false; twoOriginD = d; }
+    else if(!twoDone && Math.abs(d-twoOriginD) > 0.08){ twoSince = now; twoOriginD = d; }
+    if(key && !twoDone && now-twoSince >= 800){
+      twoDone = true;
+      const id = TWOHAND[key];
+      if(id) runAction(id);
+    }
+  }
+  function handleSingleHand(h,now){
+    pushHist(h,now);
+    const key = staticKey(h);
+    trackHold(key,h,now);
+    if(holdReady(key, key ? holdMs(key) : 0, now)){
+      if(key === 'fist'){
+        staticDone = true; gesturePaused = true; clickTick(420); resetHandState();
+        showGestureToast('Gesture controls paused');
+        return true;
+      }
+      staticDone = true;
+      if(STATIC[key]) runAction(STATIC[key]);
+    }
+    if(h.pose === 'peace' || h.pose === 'three' || h.pose === 'fist' || h.pose === 'four'){
+      const dir = detectSwipe(now,h.pose);
+      const id = dir && SWIPES[h.pose+':'+dir];
+      if(id){
+        swipeCooldownUntil = now+1100; poseHist.length = 0; staticDone = true;
+        runAction(id);
+        return false;
+      }
+    }
+    if(h.pointing){
+      const c = detectCircle(now);
+      if(c){ circleCooldownUntil = now+1600; poseHist.length = 0; runAction(c === 'cw' ? 'snooze' : 'snooze-cancel'); }
+    }
+    if(h.pose === 'open' && detectWave(now)){
+      waveCooldownUntil = now+1600; poseHist.length = 0;
+      swipeLatched = true; palmStartX = null; palmStartY = null;
+      runAction('dismiss-cookie');
+    }
+    return false;
+  }
+
+  function handleHandResults(results){
+    const hands = results.multiHandLandmarks || [];
+    const now = performance.now();
+    drawHands(hands);
+    if(!hands.length){ resetHandState(); return; }
+    const infos = hands.slice(0,2).map(readHand);
+    const h = infos[0];
+    const two = infos.length === 2;
+    const screenX = h.ix*window.innerWidth, screenY = h.iy*window.innerHeight;
+
+    // While paused, the only thing listened for is an open palm to resume.
+    if(gesturePaused){
+      const k = two ? null : staticKey(h);
+      trackHold(k,h,now);
+      setHud('Gestures paused','hold an open palm to resume', (k && k.indexOf('open') === 0 && k === staticGesture) ? (now-staticSince)/550 : 0);
+      if(k && k.indexOf('open') === 0 && holdReady(k,550,now)){
+        gesturePaused = false; staticDone = true; clickTick(820);
+        showGestureToast('Gesture controls resumed');
+      }
+      return;
+    }
+
+    let bothOpen = false;
+    if(two){
+      const d = Math.hypot(infos[0].wx-infos[1].wx, infos[0].wy-infos[1].wy);
+      bothOpen = infos[0].pose === 'open' && infos[1].pose === 'open';
+      poseHist.length = 0;
+      handleTwoHands(infos,d,now);
+    } else {
+      twoGesture = null; twoDone = false; qrGestureSince = 0; qrGestureDone = false;
+      if(handleSingleHand(h,now)) return;
+    }
+    if(gesturePaused) return;
+
+    if(h.pointing || h.pinch){
+      cursorTargetX = euroX.f(screenX,now); cursorTargetY = euroY.f(screenY,now);
+      if(!cursorLive){
+        cursorDrawX = cursorTargetX; cursorDrawY = cursorTargetY;
+        placeCursor(cursorDrawX,cursorDrawY);
+      }
+      cursorLive = true;
+      gestureCursor.classList.add('visible');
+      gestureCursor.classList.toggle('pinching', h.pinch);
+      if(handLabelsOn) showGestureLabel(h.pinch ? 'Pinch' : 'Pointing');
+    } else if(!pinchActive){
+      cursorLive = false; euroX.reset(); euroY.reset();
+      gestureCursor.classList.remove('visible');
+      showGestureLabel('');
+    }
+
+    // Pinch is a plain click at the spot where the pinch began (the finger
+    // tends to drift as it closes, so the starting point is the honest one).
+    // Scrolling no longer rides on the pinch: it moves to the right-edge
+    // rail, and clicking can also be done just by holding the cursor still.
+    if(h.pinch){
+      if(!pinchActive){ pinchActive = true; pinchStartX = screenX; pinchStartY = screenY; }
+    } else if(pinchActive){
+      pinchActive = false;
+      const target = document.elementFromPoint(pinchStartX,pinchStartY);
+      const control = target && target.closest('button,a,input,select,textarea,[role="button"]');
+      clickTick(control && !control.disabled ? 920 : 520);
+      spawnRipple(pinchStartX,pinchStartY);
+      if(control && !control.disabled){ control.click(); showGestureToast('Selected'); }
+      gestureCursor.classList.remove('pinching');
+    }
+
+    updateHud(h,two,now);
+    if(h.pose === 'open' && !bothOpen && !swipeLatched){
+      if(palmStartX===null){ palmStartX = h.wx; palmStartY = h.wy; }
+      const swipeX = h.wx-palmStartX, swipeY = h.wy-palmStartY;
+      if(Math.abs(swipeX) > Math.abs(swipeY) && Math.abs(swipeX) > 0.16){
+        goToSlide(slideIndex + (swipeX>0 ? 1 : -1));
+        swipeLatched = true; clickTick(760); showGestureToast(swipeX>0 ? 'Next card' : 'Previous card');
+      } else if(Math.abs(swipeY) > 0.16){
+        window.scrollBy({top: swipeY>0 ? 420 : -420, behavior:motionBehavior()});
+        swipeLatched = true; clickTick(680); showGestureToast(swipeY>0 ? 'Scrolled down' : 'Scrolled up');
+      }
+    } else if(h.pose !== 'open'){ palmStartX = null; palmStartY = null; swipeLatched = false; }
+  }
+  // Runs every screen refresh while the camera is on, independent of how
+  // often fresh hand data arrives. It (1) eases the cursor toward the latest
+  // detected position, (2) scrolls the page while the cursor sits in the
+  // right-edge rail, faster toward the very top or bottom, and (3) clicks a
+  // button or link once the cursor has rested on it for about a second,
+  // with a ring that fills to show the countdown.
+  const DWELL_MS = 900, DWELL_MOVE_PX = 30;
+  let dwellAnchorX = 0, dwellAnchorY = 0, dwellSince = 0, dwellLatched = false, lastFrame = 0, railShown = false;
+  function cursorRenderLoop(){
+    const now = performance.now();
+    const dt = Math.min(48, lastFrame ? now-lastFrame : 16.7);
+    lastFrame = now;
+    const live = cursorLive && !gesturePaused;
+    if(live){
+      const k = 1 - Math.exp(-38*dt/1000);
+      cursorDrawX += (cursorTargetX-cursorDrawX)*k;
+      cursorDrawY += (cursorTargetY-cursorDrawY)*k;
+      placeCursor(cursorDrawX,cursorDrawY);
+      const inRail = cursorDrawX > window.innerWidth*0.9;
+      if(inRail){
+        const f = cursorDrawY/window.innerHeight;
+        const speed = f < 0.4 ? -(0.4-f)/0.4 : (f > 0.6 ? (f-0.6)/0.4 : 0);
+        if(speed) window.scrollBy({top:Math.sign(speed)*Math.pow(Math.abs(speed),1.5)*30*(dt/16.7), behavior:'instant'});
+        dwellSince = 0; gestureCursor.style.setProperty('--dwell', 0);
+      } else {
+        if(Math.hypot(cursorDrawX-dwellAnchorX, cursorDrawY-dwellAnchorY) > DWELL_MOVE_PX){
+          dwellAnchorX = cursorDrawX; dwellAnchorY = cursorDrawY; dwellSince = now; dwellLatched = false;
+        }
+        const el = document.elementFromPoint(cursorDrawX, cursorDrawY);
+        const control = el && el.closest('button,a,input,select,textarea,[role="button"]');
+        if(control && !control.disabled && !dwellLatched){
+          if(!dwellSince) dwellSince = now;
+          const p = (now-dwellSince)/DWELL_MS;
+          gestureCursor.style.setProperty('--dwell', Math.min(100, p*100));
+          if(p >= 1){
+            dwellLatched = true; gestureCursor.style.setProperty('--dwell', 0);
+            clickTick(920); spawnRipple(cursorDrawX, cursorDrawY);
+            control.click(); showGestureToast('Selected');
+          }
+        } else {
+          gestureCursor.style.setProperty('--dwell', 0);
+          if(!control) dwellSince = now;
+        }
+      }
+    }
+    if(live !== railShown){ railShown = live; gestureRail.classList.toggle('visible', live); }
+    if(running) requestAnimationFrame(cursorRenderLoop);
+  }
+  async function initializeHandTracker(){
+    if(handTracker || handTrackerFailed) return;
+    try{
+      await TP_loadLib('hands');
+      if(typeof Hands==='undefined') throw new Error('Hand tracking library did not load');
+      handTracker = new Hands({locateFile:file=>'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/'+file});
+      await handTracker.setOptions({maxNumHands:2,modelComplexity:0,minDetectionConfidence:0.55,minTrackingConfidence:0.5});
+      handTracker.onResults(handleHandResults);
+    }catch(e){
+      handTrackerFailed = true;
+      showGestureToast('Gesture control unavailable, posture tracking still runs');
+    }
+  }
+  async function handFrameLoop(){
+    if(!running) return;
+    const now = performance.now();
+    if(handTracker && !handsSuspended && !handSendBusy && video.readyState>=2){
+      lastHandSend = now; handSendBusy = true;
+      try{ await handTracker.send({image:video}); }
+      catch(e){ /* a dropped frame is fine, the next one retries */ }
+      finally{ handSendBusy = false; }
+    }
+    if(running) requestAnimationFrame(handFrameLoop);
+  }
+
+  // Spine Timeline: one average score per calendar day, kept in
+  // localStorage so the history survives closed tabs, read back only by
+  // this page, on this device, never transmitted anywhere.
+  const DAY_MS = 86400000;
+  let dayAccum = { sum: 0, count: 0 };
+  function todayKey(){ return new Date().toISOString().slice(0,10); }
+  // History is written to local storage only after the visitor pressed Accept.
+  // Otherwise it lives in memory for this visit only.
+  let memHist = {};
+  function addDay(hist, key, sum, count){
+    const prev = hist[key] || {sum:0,count:0};
+    hist[key] = { sum: prev.sum + sum, count: prev.count + count };
+  }
+  function readStoredHistory(){
+    if(!storageAllowed()) return {};
+    try{ return JSON.parse(localStorage.getItem('tp_daily') || '{}'); }catch(e){ return {}; }
+  }
+  function loadHistory(){
+    const out = readStoredHistory();
+    for(const k in memHist) addDay(out, k, memHist[k].sum, memHist[k].count);
+    return out;
+  }
+  function foldMemory(){
+    if(!storageAllowed()) return;
+    const stored = readStoredHistory();
+    let any = false;
+    for(const k in memHist){ addDay(stored, k, memHist[k].sum, memHist[k].count); any = true; }
+    if(any){ memHist = {}; try{ localStorage.setItem('tp_daily', JSON.stringify(stored)); }catch(e){} }
+  }
+  function flushHistory(){
+    if(dayAccum.count === 0) return;
+    const key = todayKey();
+    if(storageAllowed()){
+      foldMemory();
+      const stored = readStoredHistory();
+      addDay(stored, key, dayAccum.sum, dayAccum.count);
+      try{ localStorage.setItem('tp_daily', JSON.stringify(stored)); }catch(e){}
+    } else {
+      addDay(memHist, key, dayAccum.sum, dayAccum.count);
+    }
+    dayAccum = { sum:0, count:0 };
+    renderTimeline();
+  }
+  function recordScore(s){
+    dayAccum.sum += s; dayAccum.count++;
+  }
+  function divergeColor(avg){
+    // Diverging ramp: rust (needs work) <-> neutral gray at the 80 alarm
+    // threshold <-> teal (on track). Two hues plus a gray midpoint, per
+    // the diverging-color spec, not a sequential single-hue scale, because
+    // 80 is a real, meaningful threshold, not an arbitrary midpoint.
+    const lerp = (a,b,t)=>Math.round(a+(b-a)*t);
+    const hexToRgb = h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+    const gray = hexToRgb('#DAD8CF');
+    let from, to, t;
+    if(avg >= 80){ from = gray; to = hexToRgb('#0F6E5C'); t = Math.min((avg-80)/20, 1); }
+    else { from = hexToRgb('#B23B22'); to = gray; t = Math.min(Math.max((avg-50)/30,0),1); }
+    const c = [0,1,2].map(i=>lerp(from[i],to[i],t));
+    return 'rgb(' + c.join(',') + ')';
+  }
+  function renderTimeline(){
+    const hist = loadHistory();
+    const grid = document.getElementById('heatmapGrid');
+    grid.innerHTML = '';
+    const days = 84;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const start = new Date(today.getTime() - (days-1)*DAY_MS);
+    const lead = start.getDay();
+    for(let i=0; i<lead; i++){
+      const pad = document.createElement('div');
+      pad.setAttribute('data-empty','1');
+      pad.className = 'hm-cell';
+      grid.appendChild(pad);
+    }
+    for(let i=0; i<days; i++){
+      const d = new Date(start.getTime() + i*DAY_MS);
+      const key = d.toISOString().slice(0,10);
+      const rec = hist[key];
+      const cell = document.createElement('div');
+      cell.className = 'hm-cell';
+      const dateLabel = d.toLocaleDateString(undefined, {month:'short', day:'numeric'});
+      const tip = document.createElement('span');
+      tip.className = 'hm-tooltip';
+      if(rec && rec.count){
+        const avg = Math.round(rec.sum/rec.count);
+        cell.style.background = divergeColor(avg);
+        cell.setAttribute('tabindex','0');
+        cell.setAttribute('role','img');
+        cell.setAttribute('aria-label', dateLabel + ': average posture score ' + avg);
+        tip.textContent = dateLabel + ': ' + avg;
+      } else {
+        cell.setAttribute('role','img');
+        cell.setAttribute('aria-label', dateLabel + ': no data');
+        tip.textContent = dateLabel + ': no data';
+      }
+      cell.appendChild(tip);
+      grid.appendChild(cell);
+    }
+  }
+  document.getElementById('clearHistoryBtn').addEventListener('click', ()=>{
+    try{ localStorage.removeItem('tp_daily'); }catch(e){}
+    memHist = {};
+    dayAccum = {sum:0,count:0};
+    renderTimeline();
+  });
+  renderTimeline();
+  setInterval(flushHistory, 5000);
+  window.addEventListener('beforeunload', flushHistory);
 
   function publishAlert(){
     if(!pairClient || !phoneConnected) return;
@@ -390,7 +1919,8 @@
     return m+':'+r;
   }
 
-  function beep(){
+  function beep(force){
+    if(soundMuted && !force) return;
     try{
       const c = new (window.AudioContext||window.webkitAudioContext)();
       const o = c.createOscillator(); const g = c.createGain();
@@ -423,7 +1953,7 @@
     const ls = kp(pose,'left_shoulder'), rs = kp(pose,'right_shoulder');
     const le = kp(pose,'left_ear'), re = kp(pose,'right_ear');
     const nose = kp(pose,'nose');
-    if(!ls||!rs||ls.score<0.3||rs.score<0.3) return null;
+    if(!ls||!rs||ls.score<0.2||rs.score<0.2) return null;
     const shoulderMidX = (ls.x+rs.x)/2, shoulderMidY = (ls.y+rs.y)/2;
     const shoulderWidth = Math.hypot(rs.x-ls.x, rs.y-ls.y) || 1;
     let earMidX = shoulderMidX, earMidY = shoulderMidY - shoulderWidth;
@@ -471,29 +2001,133 @@
     });
   }
 
-  async function loop(){
+  // Stretch break: three short moves checked live against the same body
+  // keypoints used for posture (no extra model). Each move counts reps by
+  // watching for a clear up-then-back-down cycle, so half-hearted wiggles
+  // do not count. Finishing resets the seated timer.
+  const stretchBtn = document.getElementById('stretchBtn'), stretchPanel = document.getElementById('stretchPanel');
+  const stretchTitle = document.getElementById('stretchTitle'), stretchCount = document.getElementById('stretchCount');
+  const stretchHint = document.getElementById('stretchHint'), stretchFill = document.getElementById('stretchFill');
+  const STRETCH_STEPS = [
+    {id:'shrug', name:'Shoulder shrugs', target:5, hint:'Lift both shoulders up toward your ears, then let them drop. Sit upright and keep your head still.'},
+    {id:'tilt', name:'Neck tilts', target:6, hint:'Slowly tilt your ear toward one shoulder, come back to the middle, then tilt to the other side.'},
+    {id:'reach', name:'Reach up', target:3, hint:'Raise both hands above your head, stretch tall, then lower them. Keep your hands in the camera view.'}
+  ];
+  const stretch = {active:false, step:0, reps:0, state:'rest', lastSide:0, neutral:0, t0:0};
+  let lastPoseRun = 0;
+  function stretchRender(){
+    const s = STRETCH_STEPS[stretch.step];
+    stretchTitle.textContent = 'Step ' + (stretch.step+1) + ' of ' + STRETCH_STEPS.length + ': ' + s.name;
+    stretchCount.textContent = stretch.reps + ' / ' + s.target;
+    stretchHint.textContent = s.hint;
+    stretchFill.style.width = Math.round(((stretch.step + stretch.reps/s.target)/STRETCH_STEPS.length)*100) + '%';
+  }
+  function stretchBegin(){
+    stretch.reps = 0; stretch.state = 'rest'; stretch.lastSide = 0; stretch.neutral = 0; stretch.t0 = performance.now();
+    stretchRender();
+  }
+  function stretchStart(){
+    if(!running || stretch.active) return;
+    stretch.active = true; stretch.step = 0;
+    if(alarmInterval){ clearInterval(alarmInterval); alarmInterval = null; publishClear(); }
+    stretchPanel.hidden = false; stretchBtn.disabled = true; stretchBtn.textContent = 'Stretch break running';
+    statusLine.textContent = 'Stretch break. Posture alarm is paused.'; statusLine.classList.remove('bad');
+    stretchBegin();
+    stretchPanel.scrollIntoView({block:'nearest', behavior:'smooth'});
+  }
+  function stretchFinish(done){
+    stretch.active = false; stretchPanel.hidden = true;
+    stretchBtn.disabled = !running; stretchBtn.textContent = 'Start a stretch break';
+    if(done){
+      seatedSeconds = 0; remindedAt = 0; timeVal.textContent = fmt(0);
+      statusLine.textContent = 'Stretch break done. Seated timer reset.'; statusLine.classList.remove('bad');
+      showGestureToast('Stretch break done');
+    } else if(running){ statusLine.textContent = 'Stretch break ended'; }
+  }
+  function stretchNext(){
+    stretch.step++;
+    if(stretch.step >= STRETCH_STEPS.length) stretchFinish(true); else stretchBegin();
+  }
+  function stretchRep(){
+    stretch.reps++; clickTick(880);
+    if(stretch.reps >= STRETCH_STEPS[stretch.step].target){ showGestureToast('Nice, next one'); stretchNext(); }
+    else stretchRender();
+  }
+  function stretchUpdate(pose,now){
+    const s = STRETCH_STEPS[stretch.step];
+    const ls = kp(pose,'left_shoulder'), rs = kp(pose,'right_shoulder');
+    const le = kp(pose,'left_ear'), re = kp(pose,'right_ear'), nose = kp(pose,'nose');
+    if(!ls || !rs || ls.score < 0.3 || rs.score < 0.3) return;
+    if(now-stretch.t0 > 45000){ showGestureToast('Skipping ahead'); stretchNext(); return; }
+    const sw = Math.hypot(rs.x-ls.x, rs.y-ls.y) || 1, sy = (ls.y+rs.y)/2;
+    const ears = le && re && le.score > 0.3 && re.score > 0.3;
+    if(s.id === 'shrug' && ears){
+      const gap = (sy-(le.y+re.y)/2)/sw;
+      stretch.neutral = Math.max(stretch.neutral*0.995, gap);
+      if(now-stretch.t0 < 1200 || stretch.neutral < 0.3) return;
+      if(stretch.state !== 'up' && gap < stretch.neutral*0.78) stretch.state = 'up';
+      else if(stretch.state === 'up' && gap > stretch.neutral*0.92){ stretch.state = 'rest'; stretchRep(); }
+    } else if(s.id === 'tilt' && ears){
+      const tilt = (le.y-re.y)/(Math.hypot(re.x-le.x, re.y-le.y) || 1);
+      if(Math.abs(tilt) > 0.3){
+        const side = Math.sign(tilt);
+        if(stretch.state === 'rest' && side !== stretch.lastSide){ stretch.state = 'tilted'; stretch.lastSide = side; }
+      } else if(Math.abs(tilt) < 0.15 && stretch.state === 'tilted'){ stretch.state = 'rest'; stretchRep(); }
+    } else if(s.id === 'reach'){
+      const lw = kp(pose,'left_wrist'), rw = kp(pose,'right_wrist');
+      const seen = lw && rw && lw.score > 0.3 && rw.score > 0.3;
+      const ny = nose && nose.score > 0.3 ? nose.y : sy-sw;
+      const upNow = seen && lw.y < ny-0.1*sw && rw.y < ny-0.1*sw;
+      const downNow = !seen || lw.y > ny+0.3*sw || rw.y > ny+0.3*sw;
+      if(upNow && stretch.state !== 'up') stretch.state = 'up';
+      else if(downNow && stretch.state === 'up'){ stretch.state = 'rest'; stretchRep(); }
+    }
+  }
+  stretchBtn.addEventListener('click', stretchStart);
+  document.getElementById('stretchSkip').addEventListener('click', ()=>{ if(stretch.active) stretchNext(); });
+  document.getElementById('stretchStop').addEventListener('click', ()=>{ if(stretch.active) stretchFinish(false); });
+
+  async function loopStep(){
     if(!running) return;
+    // Posture only needs a few readings a second; running the body model
+    // flat out starves the hand tracker and makes the cursor choppy.
+    const t0 = performance.now();
+    if(t0-lastPoseRun < (stretch.active ? 90 : 220)){ requestAnimationFrame(loop); return; }
+    lastPoseRun = t0;
     const poses = await detector.estimatePoses(video);
     const now = performance.now();
+    if(lastPoseDone){ const dtp = now - lastPoseDone; if(dtp > 0) fpsEma = fpsEma ? fpsEma * 0.8 + (1000 / dtp) * 0.2 : 1000 / dtp; }
+    lastPoseDone = now;
+    updateDiag(poses.length ? poses[0] : null);
     if(poses.length){
       const pose = poses[0];
       draw(pose);
+      if(stretch.active){
+        stretchUpdate(pose,now);
+        lastTick = null; poorSince = null;
+        requestAnimationFrame(loop);
+        return;
+      }
       const m = computeMetrics(pose);
       if(m){
+        lastPoseSeen = now;
         const s = scoreFrom(m);
         scoreVal.textContent = s;
         neckVal.textContent = Math.round(m.neckAngleDeg) + '\u00B0';
         shoulderVal.textContent = m.roundRatio ? Math.round(m.roundRatio*100)/100 : '--';
-        if(lastTick!==null) seatedSeconds += (now-lastTick)/1000;
+        if(lastTick!==null && !timerPaused) seatedSeconds += (now-lastTick)/1000;
         lastTick = now;
         timeVal.textContent = fmt(seatedSeconds);
+        recordScore(s);
 
-        if(s < 80){
+        if(s < alarmThreshold){
           if(!poorSince){ poorSince = now; }
           if(now - poorSince > 4000){
-            statusLine.textContent = 'Posture slipping, fix your posture';
+            const snoozed = now < snoozeUntil;
+            statusLine.textContent = snoozed ? 'Posture slipping, alarm snoozed' : 'Posture slipping, fix your posture';
             statusLine.classList.add('bad');
-            if(!alarmInterval){
+            setPresence('slouched', 'Slouching');
+            if(!alarmInterval && !snoozed){
               beep();
               alarmInterval = setInterval(beep, 3000);
               publishAlert();
@@ -504,35 +2138,116 @@
           poorSince = null;
           statusLine.textContent = 'Posture looks good';
           statusLine.classList.remove('bad');
+          setPresence('upright', 'Sitting upright');
         }
 
         const limitMin = parseFloat(limitInput.value)||20;
         if(seatedSeconds - remindedAt > limitMin*60){
           remindedAt = seatedSeconds;
-          statusLine.textContent = 'You have been seated a while, consider standing up';
+          statusLine.textContent = 'You have been seated a while. Try the stretch break below.';
           statusLine.classList.add('bad');
           beep();
         }
+      } else {
+        lastTick = null; scoreVal.textContent = '--';
+        statusLine.textContent = 'I can see you, but not both shoulders. Move back a little so both shoulders are in the picture.';
+        statusLine.classList.remove('bad');
       }
     } else {
       lastTick = null;
       scoreVal.textContent = '--';
       statusLine.textContent = 'No one detected in frame';
       statusLine.classList.remove('bad');
+      if(lastPoseSeen && now - lastPoseSeen > 20000){
+        setPresence('away', 'Away from desk');
+      }
     }
     requestAnimationFrame(loop);
   }
 
+  // The posture loop must never die silently. Any error is shown, the loop
+  // retries, and after a few failures in a row it switches the model to the
+  // CPU backend, which works even when the GPU is busy or its context is lost.
+  const diagLine = document.getElementById('diagLine');
+  const gesturesToggle = document.getElementById('gesturesToggle');
+  let lastPoseDone = 0, poseStartedAt = 0, fpsEma = 0, poseErrors = 0, usedCpuFallback = false, handsSuspended = false;
+  function updateDiag(pose){
+    const fps = fpsEma ? fpsEma.toFixed(1) + ' readings per second' : 'starting';
+    if(!pose){ diagLine.textContent = 'Model sees no body yet. ' + fps + '.'; return; }
+    const f = n=>{ const k = kp(pose, n); return k ? k.score.toFixed(2) : '--'; };
+    diagLine.textContent = 'Model confidence: shoulders ' + f('left_shoulder') + ' and ' + f('right_shoulder') + ', ears ' + f('left_ear') + ' and ' + f('right_ear') + ', nose ' + f('nose') + '. ' + fps + '. Scoring needs both shoulders above 0.20.';
+  }
+  async function poseRecover(){
+    if(usedCpuFallback || !window.tf || !tf.setBackend) return;
+    usedCpuFallback = true;
+    try{
+      statusLine.textContent = 'Posture model hit a graphics error, switching to the slower CPU mode...';
+      await tf.setBackend('cpu'); await tf.ready();
+      detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, {modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING});
+    }catch(e){}
+  }
+  async function loop(){
+    if(!running) return;
+    if(!poseStartedAt) poseStartedAt = performance.now();
+    try{
+      await loopStep();
+      poseErrors = 0;
+    }catch(e){
+      poseErrors++;
+      const msg = (e && e.message) ? String(e.message).slice(0, 90) : 'unknown error';
+      statusLine.textContent = poseErrors >= 6
+        ? 'Posture model keeps failing (' + msg + '). Try reloading the page, closing other tabs that use the camera, or using Chrome.'
+        : 'Posture model hit an error (' + msg + '). Retrying...';
+      statusLine.classList.add('bad');
+      diagLine.textContent = 'Error: ' + msg;
+      if(poseErrors === 3) await poseRecover();
+      if(running) setTimeout(loop, Math.min(2000, 250 * poseErrors));
+    }
+  }
+  // If posture readings stall while hand tracking is on, hand tracking is the likely
+  // cause (both compete for the GPU), so pause it and say so.
+  setInterval(()=>{
+    if(!running || !poseStartedAt || handsSuspended || !handTracker) return;
+    if(performance.now() - Math.max(lastPoseDone, poseStartedAt) > 5000){
+      handsSuspended = true; gesturesToggle.checked = false; stopHands();
+      showGestureToast('Hand gestures paused because posture readings stalled. Tick Hand gestures to turn them back on.');
+    }
+  }, 1000);
+  function stopHands(){
+    try{ hctx.clearRect(0, 0, handCanvas.width, handCanvas.height); }catch(e){}
+    resetHandState();
+  }
+  gesturesToggle.addEventListener('change', ()=>{
+    handsSuspended = !gesturesToggle.checked;
+    if(handsSuspended) stopHands();
+  });
+
+  function cameraErrorText(err){
+    const n = err && err.name, msg = (err && err.message) ? String(err.message) : '';
+    if(!window.isSecureContext || !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){
+      return 'This page cannot use the camera here. Open the https version of the site in a current Chrome, Edge, Firefox or Safari.';
+    }
+    if(n === 'NotAllowedError' || n === 'SecurityError') return 'Camera permission was blocked. Click the camera or lock icon in the address bar, allow the camera, then press Enable camera again.';
+    if(n === 'NotFoundError' || n === 'OverconstrainedError') return 'No camera was found on this device.';
+    if(n === 'NotReadableError' || n === 'AbortError') return 'The camera could not start. Another app or tab may be using it.';
+    if(/Could not load/.test(msg)) return 'The posture model code could not be downloaded. Check your connection and try again.';
+    return 'The camera could not start' + (msg ? ' (' + msg.slice(0, 80) + ')' : '') + '.';
+  }
   startBtn.addEventListener('click', async ()=>{
     if(running) return;
     startBtn.textContent = 'Loading model...';
     startBtn.disabled = true;
     try{
+      if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) throw new Error('camera api unavailable');
+      // Start fetching the model code now, while the browser shows its camera permission prompt.
+      const libsReady = detector ? Promise.resolve() : (async()=>{ await TP_loadLib('tf'); await TP_loadLib('pose'); })();
+      libsReady.catch(()=>{});
       const stream = await navigator.mediaDevices.getUserMedia({video:{width:640,height:480}, audio:false});
       video.srcObject = stream;
       await new Promise(res=>{ video.onloadedmetadata = res; });
       placeholder.style.display = 'none';
       if(!detector){
+        await libsReady;
         await tf.ready();
         detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet,
           {modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING});
@@ -542,12 +2257,21 @@
       startBtn.disabled = true;
       stopBtn.disabled = false;
       calibrateBtn.disabled = false;
+      stretchBtn.disabled = false;
       statusLine.textContent = 'Reading posture...';
+      lastPoseSeen = performance.now();
+      setPresence('upright', 'Reading posture');
       loop();
+      cursorRenderLoop();
+      await initializeHandTracker();
+      handFrameLoop();
     }catch(err){
+      running = false;
+      if(video.srcObject){ try{ video.srcObject.getTracks().forEach(t=>t.stop()); }catch(e){} video.srcObject = null; }
+      placeholder.style.display = 'flex';
       startBtn.textContent = 'Enable camera';
       startBtn.disabled = false;
-      statusLine.textContent = 'Camera access failed: ' + err.message;
+      statusLine.textContent = cameraErrorText(err);
       statusLine.classList.add('bad');
     }
   });
@@ -557,6 +2281,8 @@
     if(video.srcObject){ video.srcObject.getTracks().forEach(t=>t.stop()); video.srcObject = null; }
     if(alarmInterval){ clearInterval(alarmInterval); alarmInterval=null; publishClear(); }
     poorSince = null;
+    lastPoseSeen = null; lastPoseDone = 0; poseStartedAt = 0; fpsEma = 0; poseErrors = 0; usedCpuFallback = false;
+    diagLine.textContent = 'Model confidence per body point shows here once the camera runs.';
     placeholder.style.display = 'flex';
     placeholder.textContent = 'Camera is off. Start it again to keep tracking your posture.';
     ctx.clearRect(0,0,overlay.width,overlay.height);
@@ -568,6 +2294,13 @@
     scoreVal.textContent = '--';
     statusLine.textContent = 'Not started';
     statusLine.classList.remove('bad');
+    setPresence('off', 'Camera off');
+    if(stretch.active) stretchFinish(false);
+    stretchBtn.disabled = true;
+    hctx.clearRect(0,0,handCanvas.width,handCanvas.height);
+    resetHandState();
+    gestureCursor.classList.remove('visible','pinching');
+    flushHistory();
   });
 
   calibrateBtn.addEventListener('click', async ()=>{
@@ -581,14 +2314,47 @@
   });
 
   const cookieBar = document.getElementById('cookieBar');
-  const hasConsentCookie = document.cookie.split('; ').some(c=>c.startsWith('tp_consent='));
-  if(!hasConsentCookie) cookieBar.hidden = false;
-  function setConsentCookie(value){
-    document.cookie = 'tp_consent=' + value + '; path=/; max-age=31536000; SameSite=Lax';
-    cookieBar.hidden = true;
+  function consentValue(){
+    const m = document.cookie.split('; ').find(c=>c.startsWith('tp_consent='));
+    return m ? m.slice('tp_consent='.length) : null;
   }
-  document.getElementById('cookieAccept').addEventListener('click', ()=>setConsentCookie('accepted'));
-  document.getElementById('cookieReject').addEventListener('click', ()=>setConsentCookie('dismissed'));
+  function storageAllowed(){ return consentValue() === 'accepted'; }
+  function setCookieBarSpace(){
+    document.documentElement.style.setProperty('--cookie-h', cookieBar.hidden ? '0px' : cookieBar.offsetHeight + 'px');
+  }
+  function showCookieBar(){ cookieBar.hidden = false; setCookieBarSpace(); }
+  let fontsRequested = false;
+  function loadWebFonts(){
+    if(fontsRequested) return;
+    fontsRequested = true;
+    const l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap';
+    document.head.appendChild(l);
+  }
+  function setConsentCookie(value){
+    document.cookie = 'tp_consent=' + value + '; path=/; max-age=31536000; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
+    cookieBar.hidden = true; setCookieBarSpace();
+  }
+  if(consentValue() === null) showCookieBar();
+  if(storageAllowed()) loadWebFonts();
+  window.addEventListener('resize', setCookieBarSpace);
+  document.getElementById('cookieAccept').addEventListener('click', ()=>{
+    setConsentCookie('accepted');
+    try{ const t = document.documentElement.getAttribute('data-theme'); if(t) localStorage.setItem('tp_theme', t); }catch(e){}
+    foldMemory();
+    flushHistory();
+    loadWebFonts();
+  });
+  document.getElementById('cookieReject').addEventListener('click', ()=>{
+    setConsentCookie('declined');
+    try{ localStorage.removeItem('tp_theme'); localStorage.removeItem('tp_daily'); }catch(e){}
+    renderTimeline();
+  });
+  document.getElementById('cookieSettings').addEventListener('click', ()=>{
+    showCookieBar();
+    document.getElementById('cookieAccept').focus();
+  });
 
   // Phone pairing: a QR code encodes a link back to this same file with
   // ?phone=1&session=ID. Opening that link switches the page into a plain
@@ -614,10 +2380,11 @@
         o.start(); o.stop(phoneAudioCtx.currentTime+0.35);
       }catch(e){}
     }
-    enableBtn.addEventListener('click', ()=>{
+    enableBtn.addEventListener('click', async ()=>{
       ring();
       enableBtn.disabled = true; enableBtn.textContent = 'Sound enabled';
       phoneStatus.textContent = 'Connecting...';
+      try{ await TP_loadLib('mqtt'); }catch(e){ phoneStatus.textContent = 'Could not load the relay library. Check your connection and reload.'; enableBtn.disabled = false; enableBtn.textContent = 'Enable alarm sound'; return; }
       const client = mqtt.connect(BROKER);
       client.on('connect', ()=>{
         client.subscribe('thinkpulse/'+sessionId+'/alert');
@@ -646,11 +2413,15 @@
     const pairPanel = document.getElementById('pairPanel');
     const pairStatus = document.getElementById('pairStatus');
     const pairLink = document.getElementById('pairLink');
-    pairBtn.addEventListener('click', ()=>{
+    pairBtn.addEventListener('click', async ()=>{
+      if(pairClient){ try{ pairClient.end(true); }catch(e){} }
+      phoneConnected = false;
       pairSession = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('s'+Date.now()+Math.random().toString(36).slice(2));
       const url = location.origin + location.pathname + '?phone=1&session=' + pairSession;
       pairLink.href = url; pairLink.textContent = url;
       pairPanel.hidden = false;
+      pairStatus.textContent = 'Loading the pairing libraries...';
+      try{ await Promise.all([TP_loadLib('mqtt'), TP_loadLib('qr')]); }catch(e){ pairStatus.textContent = 'Could not load the pairing libraries. Check your connection and try again.'; return; }
       pairStatus.textContent = 'Connecting to relay...';
       if(qrInstance){ qrInstance.clear(); qrInstance.makeCode(url); }
       else { qrInstance = new QRCode(document.getElementById('qrCanvas'), {text:url, width:170, height:170, correctLevel: QRCode.CorrectLevel.M}); }
@@ -668,6 +2439,36 @@
       });
     });
   }
+})();
+</script>
+<script>
+(function(){
+  var rootEl = document.documentElement;
+  var baseTitle = document.title;
+  function route(){
+    var onGuide = location.hash === '#gestures';
+    document.title = onGuide ? 'Gesture guide | ThinkPulse' : baseTitle;
+    rootEl.classList.toggle('guide-mode', onGuide);
+    if(onGuide){ window.scrollTo(0,0); return; }
+    var id = location.hash.slice(1), el = id && document.getElementById(id);
+    if(el) el.scrollIntoView();
+  }
+  window.addEventListener('hashchange', route);
+  if(location.hash === '#gestures') route();
+  var q = document.getElementById('gq'), status = document.getElementById('gStatus'), empty = document.getElementById('gEmpty');
+  var rows = Array.prototype.slice.call(document.querySelectorAll('#guideView .row'));
+  var cats = Array.prototype.slice.call(document.querySelectorAll('#guideView .cat'));
+  q.addEventListener('input', function(){
+    var terms = q.value.toLowerCase().split(/\s+/).filter(Boolean), shown = 0;
+    rows.forEach(function(r){
+      var t = r.getAttribute('data-text');
+      var ok = terms.every(function(w){ return t.indexOf(w) !== -1; });
+      r.hidden = !ok; if(ok) shown++;
+    });
+    cats.forEach(function(c){ c.hidden = !c.querySelector('.row:not([hidden])'); });
+    empty.hidden = shown !== 0;
+    status.textContent = shown === rows.length ? 'Showing all ' + rows.length : 'Showing ' + shown + ' of ' + rows.length;
+  });
 })();
 </script>
 </body>
