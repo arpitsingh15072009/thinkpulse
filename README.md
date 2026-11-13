@@ -97,10 +97,3 @@ ThinkPulse, posture tracker, webcam posture detection, posture monitoring, neck 
 
 > **Note:** All prices are preliminary estimates in INR and subject to supplier availability and final component selection. No components have been purchased yet.
 
-## Product Design
-
-![ThinkPulse product render](./assets/thinkpulse-product-render.png)
-
-*Concept render of the proposed ThinkPulse hardware, showing
-the assembled desk-mounted device, internal components,
-electronics layout and system architecture.*
