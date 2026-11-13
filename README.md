@@ -78,22 +78,23 @@ Released under the MIT License. See the `LICENSE` file. The third-party librarie
 
 ThinkPulse, posture tracker, webcam posture detection, posture monitoring, neck angle, shoulder angle, hand gestures
 
+
 ## Bill of Materials (BOM)
 
-| Item | Category | Component / Specification | Qty | Estimated Cost (INR) | Total (INR) | Owned? | Supplier / Reference |
+| Item | Category | Component / Specification | Qty | Estimated Cost (USD) | Total (USD) | Owned? | Supplier / Reference |
 |---:|---|---|---:|---:|---:|---|---|
-| 1 | Compute | Raspberry Pi 5 4GB | 1 | 12,500 | 12,500 | No | [Official Website](https://www.raspberrypi.com/products/raspberry-pi-5/) |
-| 2 | Camera | Seeed XIAO ESP32-S3 Sense | 1 | 2,000 | 2,000 | No | [Seeed Studio](https://www.seeedstudio.com/XIAO-ESP32S3-Sense-p-5639.html) |
-| 3 | Storage | 64GB microSD Card | 1 | 900 | 900 | No | [Raspberry Pi](https://www.raspberrypi.com/documentation/) |
-| 4 | Power | Compatible USB-C Power Supply | 1 | 1,600 | 1,600 | No | [Official Website](https://www.raspberrypi.com/products/27w-usb-c-power-supply/) |
-| 5 | Cooling | Raspberry Pi 5 Active Cooler | 1 | 800 | 800 | No | [Official Website](https://www.raspberrypi.com/products/active-cooler/) |
-| 6 | Feedback | RGB LED Module | 1 | 100 | 100 | No | [DigiKey](https://www.digikey.in/) |
-| 7 | Feedback | Low-voltage Active Buzzer | 1 | 100 | 100 | No | [DigiKey](https://www.digikey.in/) |
-| 8 | Controls | Momentary Pushbuttons | 2 | 40 | 80 | No | [DigiKey](https://www.digikey.in/) |
-| 9 | Interconnect | Wires, Connectors & Breadboard | 1 | 500 | 500 | No | [Robu](https://robu.in/) |
-| 10 | Enclosure | Custom 3D-Printed Enclosure | 1 | 1,800 | 1,800 | No | [FreeCAD](https://www.freecad.org/) |
-| 11 | Miscellaneous | Fasteners, Cables & Standoffs | 1 | 700 | 700 | No | [DigiKey](https://www.digikey.in/) |
-| | | **GRAND TOTAL** | | | **₹21,080** | | |
+| 1 | Compute | Raspberry Pi 5 4GB | 1 | $132.61 | $132.61 | No | [Official Website](https://www.raspberrypi.com/products/raspberry-pi-5/) |
+| 2 | Camera | Seeed XIAO ESP32-S3 Sense | 1 | $21.22 | $21.22 | No | [Seeed Studio](https://www.seeedstudio.com/XIAO-ESP32S3-Sense-p-5639.html) |
+| 3 | Storage | 64GB microSD Card | 1 | $9.55 | $9.55 | No | [Raspberry Pi](https://www.raspberrypi.com/documentation/) |
+| 4 | Power | Compatible USB-C Power Supply | 1 | $16.97 | $16.97 | No | [Official Website](https://www.raspberrypi.com/products/27w-usb-c-power-supply/) |
+| 5 | Cooling | Raspberry Pi 5 Active Cooler | 1 | $8.49 | $8.49 | No | [Official Website](https://www.raspberrypi.com/products/active-cooler/) |
+| 6 | Feedback | RGB LED Module | 1 | $1.06 | $1.06 | No | [DigiKey](https://www.digikey.in/) |
+| 7 | Feedback | Low-voltage Active Buzzer | 1 | $1.06 | $1.06 | No | [DigiKey](https://www.digikey.in/) |
+| 8 | Controls | Momentary Pushbuttons | 2 | $0.42 | $0.85 | No | [DigiKey](https://www.digikey.in/) |
+| 9 | Interconnect | Wires, Connectors & Breadboard | 1 | $5.30 | $5.30 | No | [Robu](https://robu.in/) |
+| 10 | Enclosure | Custom 3D-Printed Enclosure | 1 | $19.10 | $19.10 | No | [FreeCAD](https://www.freecad.org/) |
+| 11 | Miscellaneous | Fasteners, Cables & Standoffs | 1 | $7.43 | $7.43 | No | [DigiKey](https://www.digikey.in/) |
+| | | **GRAND TOTAL** | | | **$223.63** | | |
 
-> **Note:** All prices are preliminary estimates in INR and subject to supplier availability and final component selection. No components have been purchased yet.
-
+> **Note:** All prices are preliminary estimates converted from INR to USD using an approximate exchange rate of ₹94.265 per USD. Actual prices may vary depending on supplier availability and final component selection. No components have been purchased yet.
+> 
